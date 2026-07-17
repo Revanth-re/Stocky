@@ -1,0 +1,1 @@
+Reserved for shared cross-feature Zod schemas (most domain schemas currently live in /validators).

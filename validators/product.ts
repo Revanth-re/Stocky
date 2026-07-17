@@ -1,0 +1,39 @@
+import { z } from "zod";
+
+export const productSchema = z.object({
+  name: z.string().min(2, "Product name is required").max(200),
+  description: z.string().max(2000).optional().or(z.literal("")),
+  sku: z.string().min(2, "SKU is required").max(64),
+  barcode: z.string().max(64).optional().or(z.literal("")),
+  imageUrl: z.string().url().optional().or(z.literal("")),
+  brandId: z.string().optional().or(z.literal("")),
+  categoryId: z.string().optional().or(z.literal("")),
+  supplierId: z.string().optional().or(z.literal("")),
+  unit: z.string().min(1).max(32).default("pcs"),
+  packSize: z.string().max(32).optional().or(z.literal("")),
+  purchasePrice: z.coerce.number().min(0, "Required"),
+  sellingPrice: z.coerce.number().min(0, "Required"),
+  taxPercent: z.coerce.number().min(0).max(100).default(0),
+  minStock: z.coerce.number().int().min(0).default(5),
+  maxStock: z.coerce.number().int().min(0).optional(),
+  currentStock: z.coerce.number().int().min(0).default(0),
+});
+export type ProductInput = z.infer<typeof productSchema>;
+
+export const productListQuerySchema = z.object({
+  search: z.string().optional(),
+  categoryId: z.string().optional(),
+  brandId: z.string().optional(),
+  supplierId: z.string().optional(),
+  status: z.enum(["good", "medium", "low", "critical", "out_of_stock"]).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+});
+export type ProductListQuery = z.infer<typeof productListQuerySchema>;
+
+export const stockAdjustmentSchema = z.object({
+  productId: z.string(),
+  quantityDelta: z.number().int(),
+  reason: z.string().min(1).max(200),
+});
+export type StockAdjustmentInput = z.infer<typeof stockAdjustmentSchema>;
