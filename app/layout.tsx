@@ -5,6 +5,7 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
+// huiii
 export const metadata: Metadata = {
   title: {
     default: "Kirana AI — Inventory & Demand Forecasting",
