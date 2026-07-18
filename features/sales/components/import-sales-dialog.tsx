@@ -146,10 +146,10 @@ export function ImportSalesDialog({ trigger }: { trigger?: React.ReactNode }) {
                 className="space-y-2"
               >
                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <Badge variant="secondary" className="gap-1">
-                    <CheckCircle2 className="size-3" />
-                    {validRows.length} ready to import
-                  </Badge>
+                  <Badge variant="success" className="gap-1">
+  <CheckCircle2 className="size-3" />
+  {validRows.length} ready to import
+</Badge>
                   {invalidCount > 0 && (
                     <Badge variant="destructive" className="gap-1">
                       <AlertTriangle className="size-3" />
