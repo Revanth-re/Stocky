@@ -18,8 +18,8 @@ import type { PurchaseOrderDetail, PurchaseOrderListRow } from "@/types/purchase
 import type { PurchaseOrderStatus } from "@/db/schema";
 
 async function nextPoNumber(storeId: string) {
-  const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(purchaseOrders).where(eq(purchaseOrders.storeId, storeId));
-  return `PO-${String(Number(count) + 1).padStart(5, "0")}`;
+  const [countRow] = await db.select({ count: sql<number>`count(*)` }).from(purchaseOrders).where(eq(purchaseOrders.storeId, storeId));
+  return `PO-${String(Number(countRow?.count ?? 0) + 1).padStart(5, "0")}`;
 }
 
 export async function createPurchaseOrder(
@@ -121,7 +121,7 @@ export async function updatePurchaseOrderStatus(storeId: string, userId: string,
 
 export async function listPurchaseOrders(storeId: string, page: number, pageSize: number): Promise<{ items: PurchaseOrderListRow[]; total: number }> {
   const offset = (page - 1) * pageSize;
-  const [rows, [{ count }]] = await Promise.all([
+  const [rows, countRows] = await Promise.all([
     db
       .select({
         id: purchaseOrders.id,
@@ -144,7 +144,7 @@ export async function listPurchaseOrders(storeId: string, page: number, pageSize
 
   return {
     items: rows.map((r) => ({ ...r, totalAmount: Number(r.totalAmount), itemCount: Number(r.itemCount), createdAt: r.createdAt.toISOString() })),
-    total: Number(count),
+    total: Number(countRows[0]?.count ?? 0),
   };
 }
 

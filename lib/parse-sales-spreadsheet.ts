@@ -40,6 +40,7 @@ export async function parseSalesSpreadsheet(file: File): Promise<{ rows: Partial
   if (!firstSheetName) return { rows: [], unrecognizedHeaders: [] };
 
   const sheet = workbook.Sheets[firstSheetName];
+  if (!sheet) return { rows: [], unrecognizedHeaders: [] };
   const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
 
   const unrecognizedHeaders = new Set<string>();

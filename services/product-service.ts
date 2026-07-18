@@ -19,7 +19,7 @@ export async function listProducts(storeId: string, query: ProductListQuery): Pr
       : undefined,
   ].filter(Boolean);
 
-  const [rows, [{ count }]] = await Promise.all([
+  const [rows, countRows] = await Promise.all([
     db
       .select({
         id: products.id,
@@ -60,7 +60,7 @@ export async function listProducts(storeId: string, query: ProductListQuery): Pr
       currentStock: Number(r.currentStock),
       status: r.status as ProductListResult["items"][number]["status"],
     })),
-    total: Number(count),
+    total: Number(countRows[0]?.count ?? 0),
     page: query.page,
     pageSize: query.pageSize,
   };

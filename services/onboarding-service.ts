@@ -65,7 +65,7 @@ export async function completeOnboarding(storeId: string, input: CompleteOnboard
           .insert(categories)
           .values({ name: catalogItem.category, slug: categorySlug, isGlobal: "true" })
           .$returningId();
-        category = { id: createdCategory!.id } as typeof category;
+        category = { id: createdCategory!.id } as unknown as typeof category;
       }
 
       const [createdProduct] = await tx

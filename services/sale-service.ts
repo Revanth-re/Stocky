@@ -7,8 +7,8 @@ import type { RecordSaleInput } from "@/validators/sale";
 import type { SaleDetail, SaleListRow } from "@/types/sale";
 
 async function nextInvoiceNumber(storeId: string) {
-  const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(sales).where(eq(sales.storeId, storeId));
-  return `INV-${String(Number(count) + 1).padStart(5, "0")}`;
+  const [countRow] = await db.select({ count: sql<number>`count(*)` }).from(sales).where(eq(sales.storeId, storeId));
+  return `INV-${String(Number(countRow?.count ?? 0) + 1).padStart(5, "0")}`;
 }
 
 /** Records a sale: validates stock, decrements inventory, computes totals, logs activity, and fires a low-stock notification if needed. */
@@ -113,7 +113,7 @@ function formatMoney(value: number) {
 export async function listSales(storeId: string, page: number, pageSize: number): Promise<{ items: SaleListRow[]; total: number }> {
   const offset = (page - 1) * pageSize;
 
-  const [rows, [{ count }]] = await Promise.all([
+  const [rows, countRows] = await Promise.all([
     db
       .select({
         id: sales.id,
@@ -135,7 +135,7 @@ export async function listSales(storeId: string, page: number, pageSize: number)
 
   return {
     items: rows.map((r) => ({ ...r, totalAmount: Number(r.totalAmount), itemCount: Number(r.itemCount), createdAt: r.createdAt.toISOString() })),
-    total: Number(count),
+    total: Number(countRows[0]?.count ?? 0),
   };
 }
 

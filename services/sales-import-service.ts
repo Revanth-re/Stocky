@@ -111,9 +111,9 @@ export async function importSalesHistory(storeId: string, userId: string, rows: 
 }
 
 async function nextImportSequence(storeId: string) {
-  const [{ count }] = await db
+  const [countRow] = await db
     .select({ count: sql<number>`count(*)` })
     .from(sales)
     .where(and(eq(sales.storeId, storeId), sql`${sales.invoiceNumber} like 'IMPORT-%'`));
-  return Number(count) + 1;
+  return Number(countRow?.count ?? 0) + 1;
 }
