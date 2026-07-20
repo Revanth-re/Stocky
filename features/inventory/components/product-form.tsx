@@ -53,9 +53,17 @@ export function ProductForm({
     defaultValues: { ...DEFAULTS, ...defaultValues },
   });
   const { data: categories } = useCategories();
+  const { data: brands } = useBrands();
+  const { data: suppliers } = useSuppliers();
 
   async function handleScan(code: string) {
     form.setValue("barcode", code, { shouldValidate: true, shouldDirty: true });
+    // SKU is required to save the product — auto-fill something from the
+    // barcode straight away so a fast scan-then-save never gets silently
+    // blocked by a missing SKU (you can still edit it before saving).
+    if (!form.getValues("sku")) {
+      form.setValue("sku", `SKU-${code}`, { shouldValidate: true, shouldDirty: true });
+    }
     setLookingUp(true);
     try {
       const res = await fetch(`/api/products/lookup-barcode/${encodeURIComponent(code)}`);
@@ -66,13 +74,17 @@ export function ProductForm({
           : "Barcode saved. Couldn't look up product details.");
         return;
       }
-      const info = json.data as { name: string | null; category: string | null; quantity: string | null; imageUrl: string | null };
+      const info = json.data as { name: string | null; brand: string | null; category: string | null; quantity: string | null; imageUrl: string | null };
       if (info.name && !form.getValues("name")) form.setValue("name", info.name, { shouldDirty: true });
       if (info.quantity && !form.getValues("packSize")) form.setValue("packSize", info.quantity, { shouldDirty: true });
       if (info.imageUrl && !form.getValues("imageUrl")) form.setValue("imageUrl", info.imageUrl, { shouldDirty: true });
       if (info.category && categories?.length) {
         const match = categories.find((c) => c.name.toLowerCase().includes(info.category!.toLowerCase()) || info.category!.toLowerCase().includes(c.name.toLowerCase()));
         if (match && !form.getValues("categoryId")) form.setValue("categoryId", match.id, { shouldDirty: true });
+      }
+      if (info.brand && brands?.length) {
+        const brandMatch = brands.find((b) => b.name.toLowerCase().includes(info.brand!.toLowerCase()) || info.brand!.toLowerCase().includes(b.name.toLowerCase()));
+        if (brandMatch && !form.getValues("brandId")) form.setValue("brandId", brandMatch.id, { shouldDirty: true });
       }
       toast.success("Filled in product details from barcode — please review before saving.");
     } catch {
@@ -81,8 +93,6 @@ export function ProductForm({
       setLookingUp(false);
     }
   }
-  const { data: brands } = useBrands();
-  const { data: suppliers } = useSuppliers();
   const pricingType = form.watch("pricingType");
 
   return (

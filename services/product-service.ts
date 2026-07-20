@@ -196,7 +196,7 @@ export async function createProduct(storeId: string, userId: string, input: Prod
 
     // Opening stock counts as the first batch — record its expiry date (if given)
     // so it shows up in "expiring soon" tracking from day one.
-    if (input.currentStock > 0) {
+    if (input.currentStock > 0 || input.expiryDate) {
       await tx.insert(inventoryBatches).values({
         storeId,
         productId: created!.id,
