@@ -16,6 +16,8 @@ export const PERMISSIONS = [
   "settings.view",
   "settings.edit",
   "users.manage",
+  "customers.view",
+  "customers.manage",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -36,8 +38,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "reports.view",
     "reports.export",
     "settings.view",
+    "customers.view",
+    "customers.manage",
   ],
-  employee: ["dashboard.view", "inventory.view", "sales.view", "sales.create", "reports.view"],
+  employee: ["dashboard.view", "inventory.view", "sales.view", "sales.create", "reports.view", "customers.view"],
 };
 
 export function can(role: UserRole, permission: Permission) {

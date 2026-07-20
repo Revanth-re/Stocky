@@ -6,6 +6,7 @@ export const storeProfileSchema = z.object({
   ownerName: z.string().min(2).max(120),
   phone: z.string().min(10).max(20),
   gstNumber: z.string().max(20).optional().or(z.literal("")),
+  upiId: z.string().max(120).optional().or(z.literal("")),
   address: z.string().max(400).optional().or(z.literal("")),
   storeType: z.enum(storeTypeEnum).optional(),
 });

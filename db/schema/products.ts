@@ -1,4 +1,4 @@
-import { mysqlTable, varchar, text, int, decimal, boolean, index } from "drizzle-orm/mysql-core";
+import { mysqlTable, varchar, text, int, decimal, boolean, mysqlEnum, index } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { timestamps, softDelete } from "./_columns";
@@ -10,6 +10,17 @@ import { inventory } from "./inventory";
 import { saleItems } from "./sale-items";
 import { purchaseOrderItems } from "./purchase-order-items";
 import { forecasts } from "./forecasts";
+import { productSupplierPrices } from "./product-supplier-prices";
+
+/**
+ * "unit" = sold as whole pieces (pcs, packet, box…), price is per piece.
+ * "weight" = loose/weighed goods (rice, dal, oil…), price is per 1 `unit`
+ * (e.g. per kg if `unit` = "kg"), and sale quantities can be fractional
+ * (0.25 kg, 1.5 kg, …) via the decimal quantity columns on sale_items /
+ * inventory / purchase_order_items.
+ */
+export const pricingTypeEnum = ["unit", "weight"] as const;
+export type PricingType = (typeof pricingTypeEnum)[number];
 
 export const products = mysqlTable(
   "products",
@@ -26,6 +37,7 @@ export const products = mysqlTable(
     supplierId: varchar("supplier_id", { length: 21 }),
     unit: varchar("unit", { length: 32 }).notNull().default("pcs"), // pcs, kg, g, ltr, ml, packet
     packSize: varchar("pack_size", { length: 32 }), // e.g. "500ml", "1kg"
+    pricingType: mysqlEnum("pricing_type", pricingTypeEnum).notNull().default("unit"),
     purchasePrice: decimal("purchase_price", { precision: 12, scale: 2 }).notNull().default("0"),
     sellingPrice: decimal("selling_price", { precision: 12, scale: 2 }).notNull().default("0"),
     taxPercent: decimal("tax_percent", { precision: 5, scale: 2 }).notNull().default("0"),
@@ -55,4 +67,5 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   saleItems: many(saleItems),
   purchaseOrderItems: many(purchaseOrderItems),
   forecasts: many(forecasts),
+  supplierPrices: many(productSupplierPrices),
 }));

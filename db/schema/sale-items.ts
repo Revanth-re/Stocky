@@ -1,4 +1,4 @@
-import { mysqlTable, varchar, int, decimal, index } from "drizzle-orm/mysql-core";
+import { mysqlTable, varchar, decimal, index } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { sales } from "./sales";
@@ -10,7 +10,10 @@ export const saleItems = mysqlTable(
     id: varchar("id", { length: 21 }).primaryKey().$defaultFn(() => nanoid()),
     saleId: varchar("sale_id", { length: 21 }).notNull(),
     productId: varchar("product_id", { length: 21 }).notNull(),
-    quantity: int("quantity").notNull(),
+    // decimal, not int: loose/weighed items (pricingType = "weight") can be
+    // sold in fractional quantities, e.g. 0.25 kg. mode: "number" keeps this
+    // a plain JS number everywhere it's used, same as the old int column.
+    quantity: decimal("quantity", { precision: 10, scale: 3, mode: "number" }).notNull(),
     unitPrice: decimal("unit_price", { precision: 12, scale: 2 }).notNull(),
     discountAmount: decimal("discount_amount", { precision: 12, scale: 2 }).notNull().default("0"),
     lineTotal: decimal("line_total", { precision: 12, scale: 2 }).notNull(),

@@ -2,7 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import type { ApiResponse } from "@/types/auth";
-import type { ProductDetail, ProductListResult } from "@/types/product";
+import type { ProductDetail, ProductListResult, ProductListRow } from "@/types/product";
 import type { ProductInput } from "@/validators/product";
 
 export type ProductFilters = {
@@ -110,4 +110,12 @@ export function useProductHistory(id: string | undefined) {
     queryFn: () => getJson<import("@/types/product-history").ProductHistory>(`/api/products/${id}/history`),
     enabled: !!id,
   });
+}
+
+/** Imperative (non-hook) lookup used by the barcode scan-to-add billing flow — called on-demand per scan, not declaratively rendered. */
+export async function fetchProductByBarcode(barcode: string): Promise<ProductListRow | null> {
+  const res = await fetch(`/api/products/barcode/${encodeURIComponent(barcode)}`);
+  const json: ApiResponse<ProductListRow> = await res.json();
+  if (!json.success) return null;
+  return json.data;
 }

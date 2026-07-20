@@ -1,4 +1,6 @@
 "use client";
+import { useState } from "react";
+import { ScanLine } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema, type ProductInput } from "@/validators/product";
@@ -7,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { DialogFooter } from "@/components/ui/dialog";
+import { BarcodeScannerDialog } from "@/components/shared/barcode-scanner-dialog";
 
 const DEFAULTS: ProductInput = {
   name: "",
@@ -21,6 +24,7 @@ const DEFAULTS: ProductInput = {
   supplierId: "",
   unit: "pcs",
   packSize: "",
+  pricingType: "unit",
   purchasePrice: 0,
   sellingPrice: 0,
   taxPercent: 0,
@@ -40,6 +44,7 @@ export function ProductForm({
   onSubmit: (values: ProductInput) => void;
   onCancel: () => void;
 }) {
+  const [scannerOpen, setScannerOpen] = useState(false);
   const form = useForm<ProductInput>({
     resolver: zodResolver(productSchema),
     defaultValues: { ...DEFAULTS, ...defaultValues },
@@ -47,6 +52,7 @@ export function ProductForm({
   const { data: categories } = useCategories();
   const { data: brands } = useBrands();
   const { data: suppliers } = useSuppliers();
+  const pricingType = form.watch("pricingType");
 
   return (
     <Form {...form}>
@@ -84,9 +90,21 @@ export function ProductForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Barcode</FormLabel>
-                <FormControl>
-                  <Input placeholder="8901030..." {...field} />
-                </FormControl>
+                <div className="flex gap-2">
+                  <FormControl>
+                    <Input placeholder="8901030..." {...field} />
+                  </FormControl>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={() => setScannerOpen(true)}
+                    aria-label="Scan barcode"
+                  >
+                    <ScanLine className="size-4" />
+                  </Button>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -98,12 +116,38 @@ export function ProductForm({
 
           <FormField
             control={form.control}
+            name="pricingType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sold as</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="unit">Whole pieces (pcs, packet, box…)</SelectItem>
+                    <SelectItem value="weight">Loose / by weight (kg, g, ltr…)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  {pricingType === "weight"
+                    ? "Billing will accept fractional quantities (e.g. 0.5) in this unit."
+                    : "Billing will use whole-number quantities."}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="unit"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Unit</FormLabel>
+                <FormLabel>{pricingType === "weight" ? "Weight unit" : "Unit"}</FormLabel>
                 <FormControl>
-                  <Input placeholder="pcs, kg, ltr…" {...field} />
+                  <Input placeholder={pricingType === "weight" ? "kg, g, ltr…" : "pcs, packet, box…"} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -114,7 +158,7 @@ export function ProductForm({
             name="purchasePrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Purchase price</FormLabel>
+                <FormLabel>Purchase price {pricingType === "weight" && <span className="text-muted-foreground">(per {form.watch("unit") || "unit"})</span>}</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.01" {...field} />
                 </FormControl>
@@ -127,7 +171,7 @@ export function ProductForm({
             name="sellingPrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Selling price</FormLabel>
+                <FormLabel>Selling price {pricingType === "weight" && <span className="text-muted-foreground">(per {form.watch("unit") || "unit"})</span>}</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.01" {...field} />
                 </FormControl>
@@ -142,7 +186,7 @@ export function ProductForm({
               <FormItem>
                 <FormLabel>Current stock</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} />
+                  <Input type="number" step={pricingType === "weight" ? "0.001" : "1"} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -155,7 +199,7 @@ export function ProductForm({
               <FormItem>
                 <FormLabel>Minimum stock</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} />
+                  <Input type="number" step={pricingType === "weight" ? "0.001" : "1"} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -186,6 +230,14 @@ export function ProductForm({
           </Button>
         </DialogFooter>
       </form>
+
+      <BarcodeScannerDialog
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        title="Scan product barcode"
+        description="Point the camera at the barcode to fill it in automatically."
+        onScan={(code) => form.setValue("barcode", code, { shouldValidate: true, shouldDirty: true })}
+      />
     </Form>
   );
 }

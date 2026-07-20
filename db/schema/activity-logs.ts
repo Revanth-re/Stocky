@@ -14,6 +14,8 @@ export const activityEntityEnum = [
   "user",
   "forecast",
   "settings",
+  "customer",
+  "bundle",
 ] as const;
 
 export const activityActionEnum = [
@@ -25,6 +27,7 @@ export const activityActionEnum = [
   "status_changed",
   "login",
   "logout",
+  "payment_recorded",
 ] as const;
 
 /** Append-only audit trail powering "Recent Activities" and product timelines. */

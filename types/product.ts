@@ -1,4 +1,4 @@
-import type { StockStatus } from "@/db/schema";
+import type { StockStatus, PricingType } from "@/db/schema";
 
 export type ProductListRow = {
   id: string;
@@ -6,6 +6,8 @@ export type ProductListRow = {
   imageUrl: string | null;
   sku: string;
   barcode: string | null;
+  pricingType: PricingType;
+  unit: string;
   brandName: string | null;
   categoryName: string | null;
   supplierName: string | null;
@@ -25,7 +27,6 @@ export type ProductListResult = {
 
 export type ProductDetail = ProductListRow & {
   description: string | null;
-  unit: string;
   packSize: string | null;
   taxPercent: number;
   maxStock: number | null;

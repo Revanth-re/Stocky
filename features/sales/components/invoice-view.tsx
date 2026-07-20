@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
+import { UpiQrCode } from "@/components/shared/upi-qr-code";
 
 /** Print-to-PDF invoice. Uses the browser's native print dialog ("Save as PDF")
  *  rather than a server PDF library — zero extra dependencies, works offline,
@@ -68,24 +69,36 @@ export function InvoiceView({ saleId }: { saleId: string }) {
             </TableBody>
           </Table>
 
-          <div className="ml-auto mt-6 w-full max-w-xs space-y-2 text-sm">
-            <div className="flex justify-between text-muted-foreground">
-              <span>Subtotal</span>
-              <span>{formatCurrency(sale.subtotal)}</span>
+          <div className="mt-6 flex flex-col items-end gap-4 sm:flex-row sm:items-start sm:justify-end">
+            {sale.storeUpiId && sale.paymentMethod !== "credit" && (
+              <UpiQrCode
+                vpa={sale.storeUpiId}
+                payeeName={sale.storeName}
+                amount={sale.totalAmount}
+                note={sale.invoiceNumber}
+              />
+            )}
+            <div className="w-full max-w-xs space-y-2 text-sm">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Subtotal</span>
+                <span>{formatCurrency(sale.subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Discount</span>
+                <span>-{formatCurrency(sale.discountAmount)}</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Tax</span>
+                <span>{formatCurrency(sale.taxAmount)}</span>
+              </div>
+              <div className="flex justify-between border-t border-border pt-2 text-base font-semibold">
+                <span>Total</span>
+                <span>{formatCurrency(sale.totalAmount)}</span>
+              </div>
+              <p className="pt-2 text-xs uppercase text-muted-foreground">
+                Paid via {sale.paymentMethod === "credit" ? "Udhaar / Credit" : sale.paymentMethod}
+              </p>
             </div>
-            <div className="flex justify-between text-muted-foreground">
-              <span>Discount</span>
-              <span>-{formatCurrency(sale.discountAmount)}</span>
-            </div>
-            <div className="flex justify-between text-muted-foreground">
-              <span>Tax</span>
-              <span>{formatCurrency(sale.taxAmount)}</span>
-            </div>
-            <div className="flex justify-between border-t border-border pt-2 text-base font-semibold">
-              <span>Total</span>
-              <span>{formatCurrency(sale.totalAmount)}</span>
-            </div>
-            <p className="pt-2 text-xs uppercase text-muted-foreground">Paid via {sale.paymentMethod}</p>
           </div>
         </CardContent>
       </Card>

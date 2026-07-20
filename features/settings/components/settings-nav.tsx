@@ -9,6 +9,7 @@ const SETTINGS_NAV = [
   { href: "/settings/users", label: "Users" },
   { href: "/settings/roles", label: "Roles & Permissions" },
   { href: "/settings/suppliers", label: "Suppliers" },
+  { href: "/settings/combos", label: "Combos & Offers" },
   { href: "/settings/brands", label: "Brands" },
   { href: "/settings/categories", label: "Categories" },
   { href: "/settings/appearance", label: "Appearance" },

@@ -56,6 +56,7 @@ export function ProductLibraryPicker({
                 sku: product.id.toUpperCase(),
                 unit: product.unit,
                 packSize: product.packSize,
+                pricingType: "unit",
                 purchasePrice: 0,
                 sellingPrice: product.suggestedSellingPrice,
                 taxPercent: 0,

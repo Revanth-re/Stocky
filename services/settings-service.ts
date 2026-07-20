@@ -32,7 +32,7 @@ export async function getStoreProfile(storeId: string) {
 
 export async function updateStoreProfile(
   storeId: string,
-  input: { name: string; ownerName: string; phone: string; gstNumber?: string; address?: string; storeType?: StoreType },
+  input: { name: string; ownerName: string; phone: string; gstNumber?: string; upiId?: string; address?: string; storeType?: StoreType },
 ) {
   await db
     .update(stores)
@@ -41,6 +41,7 @@ export async function updateStoreProfile(
       ownerName: input.ownerName,
       phone: input.phone,
       gstNumber: input.gstNumber || null,
+      upiId: input.upiId || null,
       address: input.address || null,
       storeType: input.storeType,
     })

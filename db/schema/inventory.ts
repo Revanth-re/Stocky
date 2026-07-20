@@ -1,4 +1,4 @@
-import { mysqlTable, varchar, int, mysqlEnum, index, unique } from "drizzle-orm/mysql-core";
+import { mysqlTable, varchar, decimal, mysqlEnum, index, unique } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { timestamps } from "./_columns";
@@ -15,8 +15,11 @@ export const inventory = mysqlTable(
     id: varchar("id", { length: 21 }).primaryKey().$defaultFn(() => nanoid()),
     storeId: varchar("store_id", { length: 21 }).notNull(),
     productId: varchar("product_id", { length: 21 }).notNull(),
-    quantity: int("quantity").notNull().default(0),
-    reservedQuantity: int("reserved_quantity").notNull().default(0),
+    // decimal so loose/weighed stock (kg, g, ltr…) can hold fractional
+    // amounts, e.g. 24.750 kg on hand. mode: "number" keeps this a plain
+    // JS number everywhere, same as the old int column.
+    quantity: decimal("quantity", { precision: 12, scale: 3, mode: "number" }).notNull().default(0),
+    reservedQuantity: decimal("reserved_quantity", { precision: 12, scale: 3, mode: "number" }).notNull().default(0),
     status: mysqlEnum("status", stockStatusEnum).notNull().default("good"),
     lastRestockedAt: varchar("last_restocked_at", { length: 64 }),
     lastSoldAt: varchar("last_sold_at", { length: 64 }),

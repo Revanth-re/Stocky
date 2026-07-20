@@ -1,7 +1,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db } from "@/db/client";
-import { sales, saleItems, products, inventory, activityLogs, users, notifications, stores } from "@/db/schema";
+import { sales, saleItems, products, inventory, activityLogs, users, notifications, stores, customers, customerTransactions } from "@/db/schema";
 import { computeStockStatus } from "@/lib/inventory-status";
 import type { RecordSaleInput } from "@/validators/sale";
 import type { SaleDetail, SaleListRow } from "@/types/sale";
@@ -11,11 +11,17 @@ async function nextInvoiceNumber(storeId: string) {
   return `INV-${String(Number(countRow?.count ?? 0) + 1).padStart(5, "0")}`;
 }
 
-/** Records a sale: validates stock, decrements inventory, computes totals, logs activity, and fires a low-stock notification if needed. */
+/**
+ * Records a sale: validates stock, decrements inventory (supports fractional
+ * quantities for loose/weighed items), computes totals, optionally books the
+ * amount to a customer's udhaar/khata ledger when paymentMethod = "credit",
+ * folds in any applied combo discount, logs activity, and fires a low-stock
+ * notification if needed.
+ */
 export async function recordSale(storeId: string, userId: string, input: RecordSaleInput) {
   return db.transaction(async (tx) => {
     let subtotal = 0;
-    let discountTotal = 0;
+    let discountTotal = input.bundleDiscountAmount ?? 0;
     let taxTotal = 0;
     const itemsToInsert: (typeof saleItems.$inferInsert)[] = [];
     const saleId = nanoid();
@@ -27,7 +33,7 @@ export async function recordSale(storeId: string, userId: string, input: RecordS
       const [inv] = await tx.select().from(inventory).where(eq(inventory.productId, item.productId)).limit(1);
       const currentStock = inv?.quantity ?? 0;
       if (currentStock < item.quantity) {
-        throw new Error(`Not enough stock for ${product.name} (only ${currentStock} left)`);
+        throw new Error(`Not enough stock for ${product.name} (only ${currentStock} ${product.unit} left)`);
       }
 
       const unitPrice = Number(product.sellingPrice);
@@ -48,7 +54,7 @@ export async function recordSale(storeId: string, userId: string, input: RecordS
         lineTotal: (lineSubtotal + lineTax).toFixed(2),
       });
 
-      const newQuantity = currentStock - item.quantity;
+      const newQuantity = Math.round((currentStock - item.quantity) * 1000) / 1000;
       await tx
         .update(inventory)
         .set({
@@ -72,8 +78,9 @@ export async function recordSale(storeId: string, userId: string, input: RecordS
       }
     }
 
-    const totalAmount = subtotal - discountTotal + taxTotal;
+    const totalAmount = Math.max(0, subtotal - discountTotal + taxTotal);
     const invoiceNumber = await nextInvoiceNumber(storeId);
+    const isCredit = input.paymentMethod === "credit" && !!input.customerId;
 
     await tx.insert(sales).values({
       id: saleId,
@@ -87,9 +94,30 @@ export async function recordSale(storeId: string, userId: string, input: RecordS
       paymentMethod: input.paymentMethod,
       customerName: input.customerName || null,
       customerPhone: input.customerPhone || null,
+      customerId: input.customerId || null,
+      appliedBundleId: input.appliedBundleId || null,
     });
 
     await tx.insert(saleItems).values(itemsToInsert);
+
+    // Udhaar/khata: book this sale's total against the customer's running balance.
+    if (isCredit && input.customerId) {
+      const [customer] = await tx.select().from(customers).where(eq(customers.id, input.customerId)).limit(1);
+      if (!customer) throw new Error("Customer not found");
+
+      const newBalance = customer.currentBalance + totalAmount;
+      await tx.update(customers).set({ currentBalance: newBalance }).where(eq(customers.id, input.customerId));
+      await tx.insert(customerTransactions).values({
+        storeId,
+        customerId: input.customerId,
+        saleId,
+        type: "credit_sale",
+        amount: totalAmount,
+        balanceAfter: newBalance,
+        note: `Credit sale ${invoiceNumber}`,
+        createdAt: new Date(),
+      });
+    }
 
     await tx.insert(activityLogs).values({
       storeId,
@@ -97,7 +125,7 @@ export async function recordSale(storeId: string, userId: string, input: RecordS
       entityType: "sale",
       entityId: saleId,
       action: "created",
-      description: `Recorded sale ${invoiceNumber} for ${formatMoney(totalAmount)}`,
+      description: `Recorded sale ${invoiceNumber} for ${formatMoney(totalAmount)}${isCredit ? " (udhaar)" : ""}`,
       createdAt: new Date(),
       metadata: null,
     });
@@ -153,6 +181,7 @@ export async function getSaleDetail(storeId: string, saleId: string): Promise<Sa
       customerPhone: sales.customerPhone,
       soldByName: users.name,
       storeName: stores.name,
+      storeUpiId: stores.upiId,
       createdAt: sales.createdAt,
     })
     .from(sales)
@@ -168,6 +197,7 @@ export async function getSaleDetail(storeId: string, saleId: string): Promise<Sa
       productId: saleItems.productId,
       productName: products.name,
       quantity: saleItems.quantity,
+      unit: products.unit,
       unitPrice: saleItems.unitPrice,
       discountAmount: saleItems.discountAmount,
       lineTotal: saleItems.lineTotal,

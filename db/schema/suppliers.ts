@@ -5,6 +5,7 @@ import { timestamps, softDelete } from "./_columns";
 import { stores } from "./stores";
 import { products } from "./products";
 import { purchaseOrders } from "./purchase-orders";
+import { productSupplierPrices } from "./product-supplier-prices";
 
 export const suppliers = mysqlTable(
   "suppliers",
@@ -29,4 +30,5 @@ export const suppliersRelations = relations(suppliers, ({ one, many }) => ({
   store: one(stores, { fields: [suppliers.storeId], references: [stores.id] }),
   products: many(products),
   purchaseOrders: many(purchaseOrders),
+  supplierPrices: many(productSupplierPrices),
 }));

@@ -9,14 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 
 export function StoreSettingsForm() {
   const { data: store, isLoading } = useStoreProfile();
   const updateStore = useUpdateStoreProfile();
   const form = useForm<StoreProfileInput>({
     resolver: zodResolver(storeProfileSchema),
-    defaultValues: { name: "", ownerName: "", phone: "", gstNumber: "", address: "" },
+    defaultValues: { name: "", ownerName: "", phone: "", gstNumber: "", upiId: "", address: "" },
   });
 
   useEffect(() => {
@@ -26,6 +26,7 @@ export function StoreSettingsForm() {
         ownerName: store.ownerName,
         phone: store.phone,
         gstNumber: store.gstNumber ?? "",
+        upiId: store.upiId ?? "",
         address: store.address ?? "",
         storeType: store.storeType,
       });
@@ -55,6 +56,14 @@ export function StoreSettingsForm() {
               )} />
               <FormField control={form.control} name="gstNumber" render={({ field }) => (
                 <FormItem><FormLabel>GST number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="upiId" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>UPI ID</FormLabel>
+                  <FormControl><Input placeholder="storename@okhdfcbank" {...field} /></FormControl>
+                  <FormDescription>Used to generate a scan-to-pay QR code on every invoice.</FormDescription>
+                  <FormMessage />
+                </FormItem>
               )} />
             </div>
             <FormField control={form.control} name="address" render={({ field }) => (

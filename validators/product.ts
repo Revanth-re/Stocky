@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { pricingTypeEnum } from "@/db/schema";
 
 export const productSchema = z.object({
   name: z.string().min(2, "Product name is required").max(200),
@@ -11,12 +12,14 @@ export const productSchema = z.object({
   supplierId: z.string().optional().or(z.literal("")),
   unit: z.string().min(1).max(32).default("pcs"),
   packSize: z.string().max(32).optional().or(z.literal("")),
+  /** "weight" = loose/weighed goods sold per unit weight (kg/g) with fractional quantities allowed at billing. */
+  pricingType: z.enum(pricingTypeEnum).default("unit"),
   purchasePrice: z.coerce.number().min(0, "Required"),
   sellingPrice: z.coerce.number().min(0, "Required"),
   taxPercent: z.coerce.number().min(0).max(100).default(0),
-  minStock: z.coerce.number().int().min(0).default(5),
-  maxStock: z.coerce.number().int().min(0).optional(),
-  currentStock: z.coerce.number().int().min(0).default(0),
+  minStock: z.coerce.number().min(0).default(5),
+  maxStock: z.coerce.number().min(0).optional(),
+  currentStock: z.coerce.number().min(0).default(0),
 });
 export type ProductInput = z.infer<typeof productSchema>;
 
@@ -33,7 +36,7 @@ export type ProductListQuery = z.infer<typeof productListQuerySchema>;
 
 export const stockAdjustmentSchema = z.object({
   productId: z.string(),
-  quantityDelta: z.number().int(),
+  quantityDelta: z.number(),
   reason: z.string().min(1).max(200),
 });
 export type StockAdjustmentInput = z.infer<typeof stockAdjustmentSchema>;

@@ -18,7 +18,7 @@ export function SaleCart({
   if (lines.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-        No products added yet. Search above to start a sale.
+        No products added yet. Search or scan a barcode above to start a sale.
       </div>
     );
   }
@@ -37,21 +37,28 @@ export function SaleCart({
       <TableBody>
         {lines.map((line) => {
           const lineTotal = Math.max(0, line.sellingPrice * line.quantity - line.discountAmount);
+          const isWeighed = line.pricingType === "weight";
           return (
             <TableRow key={line.productId}>
               <TableCell>
                 <p className="font-medium">{line.name}</p>
-                <p className="text-xs text-muted-foreground">{formatCurrency(line.sellingPrice)} / unit · {line.currentStock} in stock</p>
+                <p className="text-xs text-muted-foreground">
+                  {formatCurrency(line.sellingPrice)} / {line.unit} · {line.currentStock} {line.unit} in stock
+                </p>
               </TableCell>
               <TableCell>
-                <Input
-                  type="number"
-                  min={1}
-                  max={line.currentStock}
-                  value={line.quantity}
-                  className="w-20"
-                  onChange={(e) => onUpdateLine(line.productId, { quantity: Number(e.target.value) })}
-                />
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min={isWeighed ? 0.001 : 1}
+                    step={isWeighed ? 0.001 : 1}
+                    max={line.currentStock}
+                    value={line.quantity}
+                    className="w-24"
+                    onChange={(e) => onUpdateLine(line.productId, { quantity: Number(e.target.value) })}
+                  />
+                  <span className="text-xs text-muted-foreground">{line.unit}</span>
+                </div>
               </TableCell>
               <TableCell>
                 <Input

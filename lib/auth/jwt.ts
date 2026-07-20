@@ -64,4 +64,3 @@ export function verifyRefreshToken(
 ): { sub: string } & JwtPayload {
   return jwt.verify(token, REFRESH_SECRET) as { sub: string } & JwtPayload;
 }
-// .kn

@@ -1,4 +1,4 @@
-import { mysqlTable, varchar, int, decimal, index } from "drizzle-orm/mysql-core";
+import { mysqlTable, varchar, decimal, index } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { purchaseOrders } from "./purchase-orders";
@@ -10,8 +10,9 @@ export const purchaseOrderItems = mysqlTable(
     id: varchar("id", { length: 21 }).primaryKey().$defaultFn(() => nanoid()),
     purchaseOrderId: varchar("purchase_order_id", { length: 21 }).notNull(),
     productId: varchar("product_id", { length: 21 }).notNull(),
-    quantityOrdered: int("quantity_ordered").notNull(),
-    quantityReceived: int("quantity_received").notNull().default(0),
+    // decimal for loose/weighed products (order 25 kg of rice, etc).
+    quantityOrdered: decimal("quantity_ordered", { precision: 12, scale: 3, mode: "number" }).notNull(),
+    quantityReceived: decimal("quantity_received", { precision: 12, scale: 3, mode: "number" }).notNull().default(0),
     unitCost: decimal("unit_cost", { precision: 12, scale: 2 }).notNull(),
     lineTotal: decimal("line_total", { precision: 12, scale: 2 }).notNull(),
   },

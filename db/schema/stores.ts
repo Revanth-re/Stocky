@@ -20,6 +20,8 @@ export const stores = mysqlTable("stores", {
   ownerName: varchar("owner_name", { length: 120 }).notNull(),
   phone: varchar("phone", { length: 20 }).notNull(),
   gstNumber: varchar("gst_number", { length: 20 }),
+  /** VPA for auto-generated UPI payment QR codes on invoices, e.g. "storename@okhdfcbank" */
+  upiId: varchar("upi_id", { length: 120 }),
   address: text("address"),
   city: varchar("city", { length: 120 }),
   state: varchar("state", { length: 120 }),

@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { ForecastPlaceholderCard } from "./forecast-placeholder-card";
+import { SupplierPriceComparison } from "./supplier-price-comparison";
 
 export function ProductHistoryTabs({ productId }: { productId: string }) {
   const { data, isLoading } = useProductHistory(productId);
@@ -18,6 +19,7 @@ export function ProductHistoryTabs({ productId }: { productId: string }) {
         <TabsTrigger value="sales">Sales History</TabsTrigger>
         <TabsTrigger value="purchases">Purchase History</TabsTrigger>
         <TabsTrigger value="activity">Activity Timeline</TabsTrigger>
+        <TabsTrigger value="suppliers">Supplier Prices</TabsTrigger>
         <TabsTrigger value="forecast">Forecast</TabsTrigger>
       </TabsList>
 
@@ -128,6 +130,10 @@ export function ProductHistoryTabs({ productId }: { productId: string }) {
             ))}
           </CardContent>
         </Card>
+      </TabsContent>
+
+      <TabsContent value="suppliers">
+        <SupplierPriceComparison productId={productId} />
       </TabsContent>
 
       <TabsContent value="forecast">

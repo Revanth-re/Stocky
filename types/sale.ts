@@ -14,6 +14,7 @@ export type SaleItemDTO = {
   productId: string;
   productName: string;
   quantity: number;
+  unit: string;
   unitPrice: number;
   discountAmount: number;
   lineTotal: number;
@@ -31,6 +32,7 @@ export type SaleDetail = {
   customerPhone: string | null;
   soldByName: string | null;
   storeName: string;
+  storeUpiId: string | null;
   createdAt: string;
   items: SaleItemDTO[];
 };

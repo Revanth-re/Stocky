@@ -27,6 +27,8 @@ export async function listProducts(storeId: string, query: ProductListQuery): Pr
         imageUrl: products.imageUrl,
         sku: products.sku,
         barcode: products.barcode,
+        pricingType: products.pricingType,
+        unit: products.unit,
         brandName: brands.name,
         categoryName: categories.name,
         supplierName: suppliers.name,
@@ -77,6 +79,7 @@ export async function getProductDetail(storeId: string, productId: string): Prom
       barcode: products.barcode,
       unit: products.unit,
       packSize: products.packSize,
+      pricingType: products.pricingType,
       brandId: products.brandId,
       brandName: brands.name,
       categoryId: products.categoryId,
@@ -113,6 +116,45 @@ export async function getProductDetail(storeId: string, productId: string): Prom
   };
 }
 
+/** Looks up an active product by exact barcode within a store — used by the camera scan-to-add billing flow. */
+export async function getProductByBarcode(storeId: string, barcode: string) {
+  const [row] = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      imageUrl: products.imageUrl,
+      sku: products.sku,
+      barcode: products.barcode,
+      pricingType: products.pricingType,
+      unit: products.unit,
+      brandName: brands.name,
+      categoryName: categories.name,
+      supplierName: suppliers.name,
+      purchasePrice: products.purchasePrice,
+      sellingPrice: products.sellingPrice,
+      currentStock: sql<number>`coalesce(${inventory.quantity}, 0)`,
+      minStock: products.minStock,
+      status: sql<string>`coalesce(${inventory.status}, 'out_of_stock')`,
+    })
+    .from(products)
+    .leftJoin(inventory, eq(inventory.productId, products.id))
+    .leftJoin(brands, eq(brands.id, products.brandId))
+    .leftJoin(categories, eq(categories.id, products.categoryId))
+    .leftJoin(suppliers, eq(suppliers.id, products.supplierId))
+    .where(and(eq(products.storeId, storeId), eq(products.barcode, barcode), eq(products.isActive, true)))
+    .limit(1);
+
+  if (!row) return null;
+
+  return {
+    ...row,
+    purchasePrice: Number(row.purchasePrice),
+    sellingPrice: Number(row.sellingPrice),
+    currentStock: Number(row.currentStock),
+    status: row.status as ProductListResult["items"][number]["status"],
+  };
+}
+
 export async function createProduct(storeId: string, userId: string, input: ProductInput) {
   return db.transaction(async (tx) => {
     const [created] = await tx
@@ -129,6 +171,7 @@ export async function createProduct(storeId: string, userId: string, input: Prod
         supplierId: input.supplierId || null,
         unit: input.unit,
         packSize: input.packSize || null,
+        pricingType: input.pricingType,
         purchasePrice: input.purchasePrice.toFixed(2),
         sellingPrice: input.sellingPrice.toFixed(2),
         taxPercent: input.taxPercent.toFixed(2),
@@ -175,6 +218,7 @@ export async function updateProduct(storeId: string, userId: string, productId: 
         supplierId: input.supplierId || null,
         unit: input.unit,
         packSize: input.packSize || null,
+        pricingType: input.pricingType,
         purchasePrice: input.purchasePrice.toFixed(2),
         sellingPrice: input.sellingPrice.toFixed(2),
         taxPercent: input.taxPercent.toFixed(2),

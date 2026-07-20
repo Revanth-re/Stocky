@@ -5,7 +5,7 @@ export const salesImportRowSchema = z.object({
   date: z.string().min(1, "Date is required"),
   productName: z.string().optional(),
   sku: z.string().optional(),
-  quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
+  quantity: z.coerce.number().positive("Quantity must be greater than 0"),
   unitPrice: z.coerce.number().min(0).optional(),
 });
 
