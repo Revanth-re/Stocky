@@ -6,6 +6,7 @@ import { loginSchema, type LoginInput } from "@/validators/auth";
 import { useLogin } from "../api/use-auth-mutations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -57,7 +58,7 @@ export function LoginForm() {
                   </Link>
                 </div>
                 <FormControl>
-                  <Input placeholder="••••••••" type="password" {...field} />
+                  <PasswordInput placeholder="••••••••" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

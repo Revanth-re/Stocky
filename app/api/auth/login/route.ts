@@ -10,8 +10,8 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return failFromZod(parsed.error);
 
   try {
-    const { accessToken, refreshToken } = await loginWithPassword(parsed.data);
-    await setAuthCookies(accessToken, refreshToken);
+    const { accessToken, refreshToken, rememberMe } = await loginWithPassword(parsed.data);
+    await setAuthCookies(accessToken, refreshToken, rememberMe);
     return ok({ redirectTo: "/dashboard" });
   } catch (error) {
     if (error instanceof AuthError) return fail(error.message, 401);

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { ScanLine, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema, type ProductInput } from "@/validators/product";
@@ -55,6 +56,32 @@ export function ProductForm({
   const { data: categories } = useCategories();
   const { data: brands } = useBrands();
   const { data: suppliers } = useSuppliers();
+  const queryClient = useQueryClient();
+
+  /** Match an existing category/brand by name, or create a new one on the fly — so scanning still fills the field in even on a brand-new, empty catalog. */
+  async function findOrCreateCatalogEntry(
+    kind: "categories" | "brands",
+    existing: { id: string; name: string }[] | undefined,
+    name: string,
+  ): Promise<string | null> {
+    const lower = name.toLowerCase();
+    const match = existing?.find((c) => c.name.toLowerCase().includes(lower) || lower.includes(c.name.toLowerCase()));
+    if (match) return match.id;
+
+    try {
+      const res = await fetch(`/api/${kind}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) return null;
+      queryClient.invalidateQueries({ queryKey: [kind] });
+      return json.data.id as string;
+    } catch {
+      return null;
+    }
+  }
 
   async function handleScan(code: string) {
     form.setValue("barcode", code, { shouldValidate: true, shouldDirty: true });
@@ -78,13 +105,13 @@ export function ProductForm({
       if (info.name && !form.getValues("name")) form.setValue("name", info.name, { shouldDirty: true });
       if (info.quantity && !form.getValues("packSize")) form.setValue("packSize", info.quantity, { shouldDirty: true });
       if (info.imageUrl && !form.getValues("imageUrl")) form.setValue("imageUrl", info.imageUrl, { shouldDirty: true });
-      if (info.category && categories?.length) {
-        const match = categories.find((c) => c.name.toLowerCase().includes(info.category!.toLowerCase()) || info.category!.toLowerCase().includes(c.name.toLowerCase()));
-        if (match && !form.getValues("categoryId")) form.setValue("categoryId", match.id, { shouldDirty: true });
+      if (info.category && !form.getValues("categoryId")) {
+        const categoryId = await findOrCreateCatalogEntry("categories", categories, info.category);
+        if (categoryId) form.setValue("categoryId", categoryId, { shouldDirty: true });
       }
-      if (info.brand && brands?.length) {
-        const brandMatch = brands.find((b) => b.name.toLowerCase().includes(info.brand!.toLowerCase()) || info.brand!.toLowerCase().includes(b.name.toLowerCase()));
-        if (brandMatch && !form.getValues("brandId")) form.setValue("brandId", brandMatch.id, { shouldDirty: true });
+      if (info.brand && !form.getValues("brandId")) {
+        const brandId = await findOrCreateCatalogEntry("brands", brands, info.brand);
+        if (brandId) form.setValue("brandId", brandId, { shouldDirty: true });
       }
       toast.success("Filled in product details from barcode — please review before saving.");
     } catch {

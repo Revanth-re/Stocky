@@ -6,6 +6,7 @@ import { registerSchema, type RegisterInput } from "@/validators/auth";
 import { useRegister } from "../api/use-auth-mutations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Form,
   FormControl,
@@ -90,7 +91,7 @@ export function RegisterForm() {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input placeholder="At least 8 characters" type="password" {...field} />
+                  <PasswordInput placeholder="At least 8 characters" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

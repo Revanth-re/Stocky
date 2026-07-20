@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { resetPasswordSchema, type ResetPasswordInput } from "@/validators/auth";
 import { useResetPassword } from "../api/use-auth-mutations";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 export function ResetPasswordForm({ token }: { token: string }) {
@@ -33,7 +33,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
               <FormItem>
                 <FormLabel>New password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="At least 8 characters" {...field} />
+                  <PasswordInput placeholder="At least 8 characters" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -46,7 +46,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
               <FormItem>
                 <FormLabel>Confirm password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="Re-enter password" {...field} />
+                  <PasswordInput placeholder="Re-enter password" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

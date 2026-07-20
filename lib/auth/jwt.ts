@@ -37,13 +37,16 @@ export type AccessTokenPayload = {
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET ?? "dev-access-secret";
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET ?? "dev-refresh-secret";
 
-const ACCESS_EXPIRES_IN = (process.env.JWT_ACCESS_EXPIRES_IN ?? "15m") as SignOptions["expiresIn"];
+// Short default kept for anyone relying on the old env var, but login/register
+// now always pass an explicit expiry (1 day normally, 30 days with "Remember me"),
+// so this fallback rarely matters in practice.
+const ACCESS_EXPIRES_IN = (process.env.JWT_ACCESS_EXPIRES_IN ?? "1d") as SignOptions["expiresIn"];
 
 const REFRESH_EXPIRES_IN = (process.env.JWT_REFRESH_EXPIRES_IN ?? "30d") as SignOptions["expiresIn"];
 
-export function signAccessToken(payload: AccessTokenPayload): string {
+export function signAccessToken(payload: AccessTokenPayload, expiresIn: SignOptions["expiresIn"] = ACCESS_EXPIRES_IN): string {
   return jwt.sign(payload, ACCESS_SECRET, {
-    expiresIn: ACCESS_EXPIRES_IN,
+    expiresIn,
   });
 }
 

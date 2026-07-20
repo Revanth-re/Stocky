@@ -34,7 +34,7 @@ export async function registerOwner(input: RegisterInput) {
     return { storeId: createdStore!.id, userId: createdUser!.id };
   });
 
-  return issueTokens(store.userId, store.storeId, "owner");
+  return issueTokens(store.userId, store.storeId, "owner", true);
 }
 
 export async function loginWithPassword(input: LoginInput) {
@@ -44,11 +44,14 @@ export async function loginWithPassword(input: LoginInput) {
   const validPassword = await verifyPassword(input.password, user.passwordHash);
   if (!validPassword) throw new AuthError("Invalid email or password");
 
-  return issueTokens(user.id, user.storeId, user.role);
+  return issueTokens(user.id, user.storeId, user.role, input.rememberMe ?? false);
 }
 
-function issueTokens(userId: string, storeId: string, role: "owner" | "manager" | "employee") {
-  const accessToken = signAccessToken({ sub: userId, storeId, role });
+function issueTokens(userId: string, storeId: string, role: "owner" | "manager" | "employee", rememberMe: boolean) {
+  // Keep the signed JWT's own expiry in sync with the cookie lifetime set in
+  // setAuthCookies() — otherwise a long-lived cookie would still carry a
+  // token that jwt.verify() rejects as expired well before the cookie does.
+  const accessToken = signAccessToken({ sub: userId, storeId, role }, rememberMe ? "30d" : "1d");
   const refreshToken = signRefreshToken({ sub: userId });
-  return { accessToken, refreshToken };
+  return { accessToken, refreshToken, rememberMe };
 }
