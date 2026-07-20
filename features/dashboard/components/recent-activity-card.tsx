@@ -4,19 +4,21 @@ import { formatDistanceToNow } from "date-fns";
 import { useDashboardSummary } from "../api/use-dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export function RecentActivityCard() {
   const { data, isLoading } = useDashboardSummary();
+  const { t } = useLanguage();
 
   return (
     <Card className="rounded-2xl">
       <CardHeader>
-        <CardTitle>Recent Activities</CardTitle>
+        <CardTitle>{t("dashboard.recentActivities")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {isLoading && Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
         {!isLoading && data?.recentActivity.length === 0 && (
-          <p className="py-6 text-center text-sm text-muted-foreground">No activity yet.</p>
+          <p className="py-6 text-center text-sm text-muted-foreground">{t("dashboard.noActivityYet")}</p>
         )}
         {data?.recentActivity.map((activity) => (
           <div key={activity.id} className="flex items-start gap-3">

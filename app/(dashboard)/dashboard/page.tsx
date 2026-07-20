@@ -5,6 +5,7 @@ import { AiRecommendationCard } from "@/features/dashboard/components/ai-recomme
 import { SalesChartCard } from "@/features/dashboard/components/sales-chart-card";
 import { RecentActivityCard } from "@/features/dashboard/components/recent-activity-card";
 import { ProductInsightsSection } from "@/features/dashboard/components/product-insights-section";
+import { DashboardHeading } from "@/features/dashboard/components/dashboard-heading";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -13,10 +14,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Good morning, {session?.name.split(" ")[0]} 👋</h1>
-        <p className="text-sm text-muted-foreground">Here&apos;s your store overview for today.</p>
-      </div>
+      <DashboardHeading firstName={session?.name.split(" ")[0] ?? ""} />
 
       <AiRecommendationCard />
 

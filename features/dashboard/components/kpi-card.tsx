@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { cn, formatDelta } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export function KpiCard({
   label,
@@ -17,6 +18,7 @@ export function KpiCard({
   hint?: string;
 }) {
   const isPositive = (deltaPct ?? 0) >= 0;
+  const { t } = useLanguage();
 
   return (
     <Card className="rounded-2xl">
@@ -34,7 +36,7 @@ export function KpiCard({
               {isPositive ? <ArrowUpRight className="size-3.5" /> : <ArrowDownRight className="size-3.5" />}
               {formatDelta(deltaPct)}
             </span>
-            <span className="text-muted-foreground">vs yesterday</span>
+            <span className="text-muted-foreground">{t("kpi.vsYesterday")}</span>
           </div>
         ) : hint ? (
           <p className="mt-2 text-xs text-muted-foreground">{hint}</p>

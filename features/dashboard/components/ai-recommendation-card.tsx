@@ -6,11 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export function AiRecommendationCard() {
   const { data, isLoading } = useForecasts("high");
   const items = data?.items.slice(0, 3) ?? [];
   const totalToReorder = data?.summary.totalItems ?? 0;
+  const { t } = useLanguage();
 
   return (
     <Card className="overflow-hidden rounded-2xl border-none bg-gradient-brand text-white shadow-elevated">
@@ -21,16 +23,16 @@ export function AiRecommendationCard() {
               <Sparkles className="size-6" />
             </span>
             <div>
-              <p className="text-sm font-medium text-white/80">AI Recommendation</p>
+              <p className="text-sm font-medium text-white/80">{t("dashboard.aiRecommendation")}</p>
               <p className="mt-1 text-2xl font-semibold">
-                {isLoading ? "Analyzing…" : `You need to reorder ${totalToReorder} items`}
+                {isLoading ? t("dashboard.analyzing") : `${t("dashboard.reorderPrefix")} ${totalToReorder} ${t("dashboard.reorderSuffix")}`}
               </p>
-              <p className="mt-1 text-sm text-white/75">Based on sales velocity & demand prediction</p>
+              <p className="mt-1 text-sm text-white/75">{t("dashboard.basedOnVelocity")}</p>
             </div>
           </div>
           <Button asChild size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
             <Link href="/forecast">
-              View Suggestions <ArrowRight className="size-4" />
+              {t("dashboard.viewSuggestions")} <ArrowRight className="size-4" />
             </Link>
           </Button>
         </div>
@@ -50,14 +52,14 @@ export function AiRecommendationCard() {
                   <Badge className="border-none bg-white/20 text-white">{Math.round(item.confidenceScore)}%</Badge>
                 </div>
                 <p className="mt-2 text-xs text-white/75">
-                  Order <span className="font-semibold text-white">{item.suggestedOrderQty} {item.unit}</span>
+                  {t("dashboard.order")} <span className="font-semibold text-white">{item.suggestedOrderQty} {item.unit}</span>
                 </p>
               </div>
             ))}
           </div>
         ) : (
           <p className="mt-6 text-sm text-white/75">
-            No urgent reorders right now — generate a forecast to see fresh recommendations.
+            {t("dashboard.noUrgentReorders")}
           </p>
         )}
       </CardContent>

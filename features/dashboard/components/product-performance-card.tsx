@@ -1,4 +1,6 @@
+"use client";
 import { Package } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/language-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import type { ProductPerformanceRow } from "@/types/dashboard";
@@ -12,6 +14,7 @@ export function ProductPerformanceCard({
   rows: ProductPerformanceRow[];
   emptyMessage: string;
 }) {
+  const { t } = useLanguage();
   return (
     <Card className="rounded-2xl">
       <CardHeader>
@@ -27,7 +30,7 @@ export function ProductPerformanceCard({
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{row.name}</p>
-              <p className="text-xs text-muted-foreground">{formatNumber(row.unitsSold)} units sold</p>
+              <p className="text-xs text-muted-foreground">{formatNumber(row.unitsSold)} {t("dashboard.unitsSold")}</p>
             </div>
             <p className="text-sm font-semibold">{formatCurrency(row.revenue)}</p>
           </div>

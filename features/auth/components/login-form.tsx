@@ -7,6 +7,7 @@ import { useLogin } from "../api/use-auth-mutations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { useLanguage } from "@/lib/i18n/language-context";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -19,6 +20,7 @@ import {
 
 export function LoginForm() {
   const login = useLogin();
+  const { t } = useLanguage();
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "", rememberMe: false },
@@ -27,8 +29,8 @@ export function LoginForm() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Welcome back</h1>
-        <p className="text-sm text-muted-foreground">Log in to manage your store.</p>
+        <h1 className="text-2xl font-semibold">{t("auth.welcomeBack")}</h1>
+        <p className="text-sm text-muted-foreground">{t("auth.loginSubtitle")}</p>
       </div>
 
       <Form {...form}>
@@ -38,7 +40,7 @@ export function LoginForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("auth.email")}</FormLabel>
                 <FormControl>
                   <Input placeholder="you@store.com" type="email" {...field} />
                 </FormControl>
@@ -52,9 +54,9 @@ export function LoginForm() {
             render={({ field }) => (
               <FormItem>
                 <div className="flex items-center justify-between">
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t("auth.password")}</FormLabel>
                   <Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline">
-                    Forgot password?
+                    {t("auth.forgotPassword")}
                   </Link>
                 </div>
                 <FormControl>
@@ -72,20 +74,20 @@ export function LoginForm() {
                 <FormControl>
                   <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
-                <FormLabel className="font-normal">Remember me for 30 days</FormLabel>
+                <FormLabel className="font-normal">{t("auth.rememberMe")}</FormLabel>
               </FormItem>
             )}
           />
           <Button type="submit" className="w-full" loading={login.isPending}>
-            Log in
+            {t("auth.login")}
           </Button>
         </form>
       </Form>
 
       <p className="text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
+        {t("auth.dontHaveAccount")}{" "}
         <Link href="/register" className="font-medium text-primary hover:underline">
-          Create one
+          {t("auth.createOne")}
         </Link>
       </p>
     </div>

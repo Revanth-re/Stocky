@@ -6,20 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 const RANGE_LABELS = { "7d": "Daily", "30d": "Weekly", "90d": "Monthly" } as const;
 
 export function SalesChartCard() {
   const [range, setRange] = useState<"7d" | "30d" | "90d">("7d");
   const { data, isLoading } = useAnalytics(range);
+  const { t } = useLanguage();
+  const RANGE_LABELS_T: Record<typeof range, string> = { "7d": t("dashboard.daily"), "30d": t("dashboard.weekly"), "90d": t("dashboard.monthly") };
 
   return (
     <Card className="rounded-2xl">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle>Sales Overview</CardTitle>
+        <CardTitle>{t("dashboard.salesOverview")}</CardTitle>
         <Tabs value={range} onValueChange={(v) => setRange(v as typeof range)}>
           <TabsList>
-            {Object.entries(RANGE_LABELS).map(([value, label]) => (
+            {(Object.entries(RANGE_LABELS_T) as [typeof range, string][]).map(([value, label]) => (
               <TabsTrigger key={value} value={value}>
                 {label}
               </TabsTrigger>

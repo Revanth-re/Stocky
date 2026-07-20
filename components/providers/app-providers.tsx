@@ -2,9 +2,11 @@
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "./theme-provider";
 import { QueryProvider } from "./query-provider";
+import { LanguageProvider } from "@/lib/i18n/language-context";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
+    <LanguageProvider>
     <ThemeProvider>
       <QueryProvider>
         {children}
@@ -24,5 +26,6 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         />
       </QueryProvider>
     </ThemeProvider>
+    </LanguageProvider>
   );
 }

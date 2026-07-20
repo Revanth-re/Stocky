@@ -9,12 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
+import { LanguageSwitcher } from "./language-switcher";
+import { useLanguage } from "@/lib/i18n/language-context";
 import type { SessionUser } from "@/types/auth";
 
 export function Topbar({ user }: { user: SessionUser }) {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedSearch(query);
   const { data: unreadCount } = useUnreadNotificationCount();
+  const { t } = useLanguage();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card/80 px-4 backdrop-blur lg:px-6">
@@ -23,13 +26,13 @@ export function Topbar({ user }: { user: SessionUser }) {
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search products, orders, suppliers…"
+          placeholder={t("topbar.searchPlaceholder")}
           className="pl-9"
           aria-label="Search"
         />
         {debouncedQuery ? (
           <p className="absolute left-0 top-full mt-1 text-xs text-muted-foreground">
-            Searching for &ldquo;{debouncedQuery}&rdquo;…
+            {t("topbar.searchingFor")} &ldquo;{debouncedQuery}&rdquo;…
           </p>
         ) : null}
       </div>
@@ -48,6 +51,7 @@ export function Topbar({ user }: { user: SessionUser }) {
             )}
           </Link>
         </Button>
+        <LanguageSwitcher />
         <ThemeToggle />
         <UserMenu user={user} />
       </div>

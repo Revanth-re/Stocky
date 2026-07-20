@@ -4,9 +4,11 @@ import { useDashboardSummary } from "../api/use-dashboard";
 import { KpiCard } from "./kpi-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export function KpiGrid() {
   const { data, isLoading } = useDashboardSummary();
+  const { t } = useLanguage();
 
   if (isLoading || !data) {
     return (
@@ -22,13 +24,13 @@ export function KpiGrid() {
 
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <KpiCard label="Today's Sales" value={formatCurrency(kpis.todaysSales)} deltaPct={kpis.todaysSalesDeltaPct} icon={IndianRupee} />
-      <KpiCard label="Revenue" value={formatCurrency(kpis.revenue)} deltaPct={kpis.revenueDeltaPct} icon={TrendingUp} />
-      <KpiCard label="Profit (Est.)" value={formatCurrency(kpis.profit)} deltaPct={kpis.profitDeltaPct} icon={Wallet} />
-      <KpiCard label="Inventory Value" value={formatCurrency(kpis.inventoryValue)} icon={Boxes} hint="Across all active SKUs" />
-      <KpiCard label="Inventory Health" value={`${kpis.inventoryHealthPct}%`} icon={HeartPulse} hint="SKUs at healthy stock" />
-      <KpiCard label="Low Stock" value={String(kpis.lowStockCount)} icon={AlertTriangle} hint="Items need reorder" />
-      <KpiCard label="Pending Orders" value={String(kpis.pendingOrders)} icon={ClipboardList} hint="Awaiting delivery" />
+      <KpiCard label={t("kpi.todaysSales")} value={formatCurrency(kpis.todaysSales)} deltaPct={kpis.todaysSalesDeltaPct} icon={IndianRupee} />
+      <KpiCard label={t("kpi.revenue")} value={formatCurrency(kpis.revenue)} deltaPct={kpis.revenueDeltaPct} icon={TrendingUp} />
+      <KpiCard label={t("kpi.profitEst")} value={formatCurrency(kpis.profit)} deltaPct={kpis.profitDeltaPct} icon={Wallet} />
+      <KpiCard label={t("kpi.inventoryValue")} value={formatCurrency(kpis.inventoryValue)} icon={Boxes} hint={t("kpi.acrossActiveSkus")} />
+      <KpiCard label={t("kpi.inventoryHealth")} value={`${kpis.inventoryHealthPct}%`} icon={HeartPulse} hint={t("kpi.healthyStock")} />
+      <KpiCard label={t("kpi.lowStock")} value={String(kpis.lowStockCount)} icon={AlertTriangle} hint={t("kpi.itemsNeedReorder")} />
+      <KpiCard label={t("kpi.pendingOrders")} value={String(kpis.pendingOrders)} icon={ClipboardList} hint={t("kpi.awaitingDelivery")} />
     </div>
   );
 }

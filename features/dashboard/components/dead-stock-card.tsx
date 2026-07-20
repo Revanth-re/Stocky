@@ -1,17 +1,20 @@
+"use client";
 import { Ghost } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/language-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatNumber } from "@/lib/utils";
 import type { DeadStockRow } from "@/types/dashboard";
 
 export function DeadStockCard({ rows }: { rows: DeadStockRow[] }) {
+  const { t } = useLanguage();
   return (
     <Card className="rounded-2xl">
       <CardHeader>
-        <CardTitle>Dead Stock</CardTitle>
+        <CardTitle>{t("dashboard.deadStockTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
         {rows.length === 0 && (
-          <p className="py-6 text-center text-sm text-muted-foreground">No dead stock — nice work!</p>
+          <p className="py-6 text-center text-sm text-muted-foreground">{t("dashboard.noDeadStock")}</p>
         )}
         {rows.map((row) => (
           <div key={row.productId} className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-muted/50">
@@ -21,10 +24,10 @@ export function DeadStockCard({ rows }: { rows: DeadStockRow[] }) {
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{row.name}</p>
               <p className="text-xs text-muted-foreground">
-                No sales in {row.daysSinceLastSale >= 999 ? "60+" : row.daysSinceLastSale} days
+                {t("dashboard.noSalesInDaysPrefix")} {row.daysSinceLastSale >= 999 ? "60+" : row.daysSinceLastSale} {t("dashboard.days")}
               </p>
             </div>
-            <p className="text-sm font-semibold">{formatNumber(row.currentStock)} left</p>
+            <p className="text-sm font-semibold">{formatNumber(row.currentStock)} {t("dashboard.left")}</p>
           </div>
         ))}
       </CardContent>

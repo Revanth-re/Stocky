@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ProductFilters } from "../api/use-products";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 const STATUS_OPTIONS = [
   { value: "good", label: "Good" },
@@ -26,6 +27,7 @@ export function InventoryFilters({
   const { data: suppliers } = useSuppliers();
   const { data: categories } = useCategories();
   const { data: brands } = useBrands();
+  const { t } = useLanguage();
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -33,7 +35,7 @@ export function InventoryFilters({
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by name, SKU, barcode…"
+            placeholder={t("inventory.searchPlaceholder")}
             className="pl-9"
             defaultValue={filters.search}
             onChange={(e) => onChange({ ...filters, search: e.target.value, page: 1 })}
@@ -67,7 +69,7 @@ export function InventoryFilters({
       </div>
 
       <Button onClick={onAddProduct}>
-        <Plus className="size-4" /> Add Product
+        <Plus className="size-4" /> {t("inventory.addProduct")}
       </Button>
     </div>
   );

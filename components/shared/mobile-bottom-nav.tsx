@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MOBILE_NAV } from "@/lib/nav-config";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export function MobileBottomNav() {
   const pathname = usePathname();
@@ -39,6 +40,7 @@ export function MobileBottomNav() {
 
 function NavLink({ item, active }: { item: (typeof MOBILE_NAV)[number]; active: boolean }) {
   const Icon = item.icon;
+  const { t } = useLanguage();
   return (
     <Link
       href={item.href as never}
@@ -48,7 +50,7 @@ function NavLink({ item, active }: { item: (typeof MOBILE_NAV)[number]; active: 
       )}
     >
       <Icon className={cn("size-5", active && "fill-accent")} />
-      {item.label}
+      {t(item.labelKey)}
     </Link>
   );
 }
