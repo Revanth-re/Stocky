@@ -12,7 +12,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   try {
     const session = await requireSession();
-    await updatePurchaseOrderStatus(session.storeId, session.id, id, parsed.data.status);
+    await updatePurchaseOrderStatus(session.storeId, session.id, id, parsed.data.status, parsed.data.items);
     return ok({ id, status: parsed.data.status });
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHENTICATED") return fail("Not authenticated", 401);

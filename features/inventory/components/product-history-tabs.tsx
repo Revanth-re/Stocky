@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { ForecastPlaceholderCard } from "./forecast-placeholder-card";
 import { SupplierPriceComparison } from "./supplier-price-comparison";
+import { ExpiryBatchesList } from "./expiry-batches-list";
 
 export function ProductHistoryTabs({ productId }: { productId: string }) {
   const { data, isLoading } = useProductHistory(productId);
@@ -20,6 +21,7 @@ export function ProductHistoryTabs({ productId }: { productId: string }) {
         <TabsTrigger value="purchases">Purchase History</TabsTrigger>
         <TabsTrigger value="activity">Activity Timeline</TabsTrigger>
         <TabsTrigger value="suppliers">Supplier Prices</TabsTrigger>
+        <TabsTrigger value="expiry">Expiry</TabsTrigger>
         <TabsTrigger value="forecast">Forecast</TabsTrigger>
       </TabsList>
 
@@ -134,6 +136,10 @@ export function ProductHistoryTabs({ productId }: { productId: string }) {
 
       <TabsContent value="suppliers">
         <SupplierPriceComparison productId={productId} />
+      </TabsContent>
+
+      <TabsContent value="expiry">
+        <ExpiryBatchesList productId={productId} />
       </TabsContent>
 
       <TabsContent value="forecast">

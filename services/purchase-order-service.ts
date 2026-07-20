@@ -7,6 +7,7 @@ import {
   suppliers,
   products,
   inventory,
+  inventoryBatches,
   users,
   stores,
   activityLogs,
@@ -83,7 +84,13 @@ export async function createPurchaseOrder(
   });
 }
 
-export async function updatePurchaseOrderStatus(storeId: string, userId: string, poId: string, status: PurchaseOrderStatus) {
+export async function updatePurchaseOrderStatus(
+  storeId: string,
+  userId: string,
+  poId: string,
+  status: PurchaseOrderStatus,
+  itemExpiries?: { productId: string; expiryDate?: string }[],
+) {
   await db.transaction(async (tx) => {
     await tx.update(purchaseOrders).set({ status, receivedAt: status === "received" ? new Date().toISOString() : undefined }).where(
       and(eq(purchaseOrders.storeId, storeId), eq(purchaseOrders.id, poId)),
@@ -103,6 +110,16 @@ export async function updatePurchaseOrderStatus(storeId: string, userId: string,
           .where(eq(inventory.productId, item.productId));
 
         await tx.update(purchaseOrderItems).set({ quantityReceived: item.quantityOrdered }).where(eq(purchaseOrderItems.id, item.id));
+
+        const expiryDate = itemExpiries?.find((e) => e.productId === item.productId)?.expiryDate;
+        await tx.insert(inventoryBatches).values({
+          storeId,
+          productId: item.productId,
+          quantity: item.quantityOrdered,
+          expiryDate: expiryDate || null,
+          source: "purchase_order",
+          purchaseOrderId: poId,
+        });
       }
     }
 

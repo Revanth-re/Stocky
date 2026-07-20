@@ -15,6 +15,13 @@ export const createPurchaseOrderSchema = z.object({
 });
 export type CreatePurchaseOrderInput = z.infer<typeof createPurchaseOrderSchema>;
 
+export const receivedItemExpirySchema = z.object({
+  productId: z.string().min(1),
+  expiryDate: z.string().optional().or(z.literal("")),
+});
+
 export const updatePurchaseOrderStatusSchema = z.object({
   status: z.enum(purchaseOrderStatusEnum),
+  /** Optional per-item expiry dates, used when status is "received". */
+  items: z.array(receivedItemExpirySchema).optional(),
 });

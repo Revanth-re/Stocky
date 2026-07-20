@@ -16,6 +16,8 @@ export type ProductListRow = {
   currentStock: number;
   minStock: number;
   status: StockStatus;
+  /** Soonest upcoming (not-yet-expired) batch expiry date for this product, ISO date string, or null if none tracked. */
+  nearestExpiryDate: string | null;
 };
 
 export type ProductListResult = {
@@ -34,6 +36,14 @@ export type ProductDetail = ProductListRow & {
   categoryId: string | null;
   supplierId: string | null;
   createdAt: string;
+};
+
+export type InventoryBatch = {
+  id: string;
+  quantity: number;
+  expiryDate: string | null;
+  source: "initial" | "purchase_order";
+  receivedAt: string;
 };
 
 export type InventoryHistoryEntry = {

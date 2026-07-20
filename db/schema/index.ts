@@ -19,3 +19,4 @@ export * from "./customer-transactions";
 export * from "./product-bundles";
 export * from "./product-bundle-items";
 export * from "./product-supplier-prices";
+export * from "./inventory-batches";

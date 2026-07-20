@@ -131,14 +131,16 @@ export function useCreatePurchaseOrder() {
   });
 }
 
+export type ReceivedItemExpiry = { productId: string; expiryDate?: string };
+
 export function useUpdatePurchaseOrderStatus(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (status: PurchaseOrderStatus) => {
+    mutationFn: async (input: { status: PurchaseOrderStatus; items?: ReceivedItemExpiry[] }) => {
       const res = await fetch(`/api/purchase-orders/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify(input),
       });
       const json: ApiResponse<{ id: string; status: string }> = await res.json();
       if (!json.success) throw new Error(json.error);

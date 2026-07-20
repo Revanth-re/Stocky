@@ -20,6 +20,8 @@ export const productSchema = z.object({
   minStock: z.coerce.number().min(0).default(5),
   maxStock: z.coerce.number().min(0).optional(),
   currentStock: z.coerce.number().min(0).default(0),
+  /** ISO date string (YYYY-MM-DD). Expiry of the current/opening batch. */
+  expiryDate: z.string().optional().or(z.literal("")),
 });
 export type ProductInput = z.infer<typeof productSchema>;
 

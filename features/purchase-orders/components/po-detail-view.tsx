@@ -1,20 +1,38 @@
 "use client";
+import { useState } from "react";
 import { format } from "date-fns";
 import { CheckCircle2, Printer, Sparkles, XCircle } from "lucide-react";
-import { usePurchaseOrder, useUpdatePurchaseOrderStatus } from "../api/use-purchase-orders";
+import { usePurchaseOrder, useUpdatePurchaseOrderStatus, type ReceivedItemExpiry } from "../api/use-purchase-orders";
 import { PO_STATUS_BADGE_VARIANT, PO_STATUS_LABEL } from "../lib/po-status";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { formatCurrency } from "@/lib/utils";
 
 export function PurchaseOrderDetailView({ poId }: { poId: string }) {
   const { data: po, isLoading } = usePurchaseOrder(poId);
   const updateStatus = useUpdatePurchaseOrderStatus(poId);
+  const [receiveOpen, setReceiveOpen] = useState(false);
+  const [expiries, setExpiries] = useState<Record<string, string>>({});
 
   if (isLoading || !po) return <Skeleton className="h-96 w-full" />;
+
+  function openReceiveDialog() {
+    setExpiries({});
+    setReceiveOpen(true);
+  }
+
+  function confirmReceive() {
+    const items: ReceivedItemExpiry[] = po!.items.map((item) => ({
+      productId: item.productId,
+      expiryDate: expiries[item.productId] || undefined,
+    }));
+    updateStatus.mutate({ status: "received", items }, { onSuccess: () => setReceiveOpen(false) });
+  }
 
   return (
     <div className="space-y-4">
@@ -22,10 +40,15 @@ export function PurchaseOrderDetailView({ poId }: { poId: string }) {
         <div className="flex items-center gap-2">
           {po.status === "ordered" && (
             <>
-              <Button size="sm" loading={updateStatus.isPending} onClick={() => updateStatus.mutate("received")}>
+              <Button size="sm" onClick={openReceiveDialog}>
                 <CheckCircle2 className="size-4" /> Mark Received
               </Button>
-              <Button size="sm" variant="outline" loading={updateStatus.isPending} onClick={() => updateStatus.mutate("cancelled")}>
+              <Button
+                size="sm"
+                variant="outline"
+                loading={updateStatus.isPending}
+                onClick={() => updateStatus.mutate({ status: "cancelled" })}
+              >
                 <XCircle className="size-4" /> Cancel
               </Button>
             </>
@@ -96,6 +119,43 @@ export function PurchaseOrderDetailView({ poId }: { poId: string }) {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={receiveOpen} onOpenChange={setReceiveOpen}>
+        <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Receive stock</DialogTitle>
+            <DialogDescription>
+              Add an expiry date per item if it has one — this powers "expiring soon" alerts later. Leave blank for items that don't expire.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            {po.items.map((item) => (
+              <div key={item.productId} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{item.productName}</p>
+                  <p className="text-xs text-muted-foreground">Qty {item.quantityOrdered}</p>
+                </div>
+                <Input
+                  type="date"
+                  className="w-40 shrink-0"
+                  value={expiries[item.productId] ?? ""}
+                  onChange={(e) => setExpiries((prev) => ({ ...prev, [item.productId]: e.target.value }))}
+                />
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setReceiveOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" loading={updateStatus.isPending} onClick={confirmReceive}>
+              Confirm receipt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

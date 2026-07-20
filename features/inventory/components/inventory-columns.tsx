@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Package, MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
+import { differenceInCalendarDays, format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +55,19 @@ export function buildInventoryColumns(handlers: { onEdit: (row: ProductListRow) 
       cell: (info) => (
         <Badge variant={STOCK_STATUS_BADGE_VARIANT[info.getValue()]}>{STOCK_STATUS_LABEL[info.getValue()]}</Badge>
       ),
+    }),
+    columnHelper.accessor("nearestExpiryDate", {
+      header: "Expiry",
+      cell: (info) => {
+        const value = info.getValue();
+        if (!value) return <span className="text-muted-foreground">—</span>;
+        const daysLeft = differenceInCalendarDays(new Date(value), new Date());
+        const label = format(new Date(value), "d MMM yyyy");
+        if (daysLeft < 0) return <Badge variant="destructive">Expired</Badge>;
+        if (daysLeft <= 7) return <Badge variant="destructive">{label} ({daysLeft}d)</Badge>;
+        if (daysLeft <= 30) return <Badge variant="warning">{label}</Badge>;
+        return <span className="text-sm text-muted-foreground">{label}</span>;
+      },
     }),
     columnHelper.display({
       id: "actions",

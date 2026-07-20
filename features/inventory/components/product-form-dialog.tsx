@@ -45,6 +45,7 @@ export function ProductFormDialog({
               sellingPrice: editingProduct.sellingPrice,
               currentStock: editingProduct.currentStock,
               minStock: editingProduct.minStock,
+              expiryDate: editingProduct.nearestExpiryDate ?? "",
             }}
             submitting={updateProduct.isPending}
             onSubmit={handleSubmit}

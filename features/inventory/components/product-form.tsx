@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { ScanLine } from "lucide-react";
+import { ScanLine, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema, type ProductInput } from "@/validators/product";
@@ -24,6 +25,7 @@ const DEFAULTS: ProductInput = {
   supplierId: "",
   unit: "pcs",
   packSize: "",
+  expiryDate: "",
   pricingType: "unit",
   purchasePrice: 0,
   sellingPrice: 0,
@@ -45,11 +47,40 @@ export function ProductForm({
   onCancel: () => void;
 }) {
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [lookingUp, setLookingUp] = useState(false);
   const form = useForm<ProductInput>({
     resolver: zodResolver(productSchema),
     defaultValues: { ...DEFAULTS, ...defaultValues },
   });
   const { data: categories } = useCategories();
+
+  async function handleScan(code: string) {
+    form.setValue("barcode", code, { shouldValidate: true, shouldDirty: true });
+    setLookingUp(true);
+    try {
+      const res = await fetch(`/api/products/lookup-barcode/${encodeURIComponent(code)}`);
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        toast(json.error === "No product details found for this barcode"
+          ? "Barcode saved. No product details found online — fill the rest in manually."
+          : "Barcode saved. Couldn't look up product details.");
+        return;
+      }
+      const info = json.data as { name: string | null; category: string | null; quantity: string | null; imageUrl: string | null };
+      if (info.name && !form.getValues("name")) form.setValue("name", info.name, { shouldDirty: true });
+      if (info.quantity && !form.getValues("packSize")) form.setValue("packSize", info.quantity, { shouldDirty: true });
+      if (info.imageUrl && !form.getValues("imageUrl")) form.setValue("imageUrl", info.imageUrl, { shouldDirty: true });
+      if (info.category && categories?.length) {
+        const match = categories.find((c) => c.name.toLowerCase().includes(info.category!.toLowerCase()) || info.category!.toLowerCase().includes(c.name.toLowerCase()));
+        if (match && !form.getValues("categoryId")) form.setValue("categoryId", match.id, { shouldDirty: true });
+      }
+      toast.success("Filled in product details from barcode — please review before saving.");
+    } catch {
+      toast("Barcode saved. Couldn't reach the product lookup service.");
+    } finally {
+      setLookingUp(false);
+    }
+  }
   const { data: brands } = useBrands();
   const { data: suppliers } = useSuppliers();
   const pricingType = form.watch("pricingType");
@@ -100,11 +131,13 @@ export function ProductForm({
                     size="icon"
                     className="shrink-0"
                     onClick={() => setScannerOpen(true)}
+                    disabled={lookingUp}
                     aria-label="Scan barcode"
                   >
-                    <ScanLine className="size-4" />
+                    {lookingUp ? <Loader2 className="size-4 animate-spin" /> : <ScanLine className="size-4" />}
                   </Button>
                 </div>
+                <FormDescription>Scanning also tries to auto-fill name, pack size and category.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -113,6 +146,34 @@ export function ProductForm({
           <SelectField control={form.control} name="categoryId" label="Category" options={categories} />
           <SelectField control={form.control} name="brandId" label="Brand" options={brands} />
           <SelectField control={form.control} name="supplierId" label="Supplier" options={suppliers} />
+
+          <FormField
+            control={form.control}
+            name="packSize"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Pack size / weight</FormLabel>
+                <FormControl>
+                  <Input placeholder="500 g, 1 kg, 1 ltr..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="expiryDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Expiry date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormDescription>Optional — leave blank if this item doesn't expire.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}
@@ -236,7 +297,7 @@ export function ProductForm({
         onOpenChange={setScannerOpen}
         title="Scan product barcode"
         description="Point the camera at the barcode to fill it in automatically."
-        onScan={(code) => form.setValue("barcode", code, { shouldValidate: true, shouldDirty: true })}
+        onScan={handleScan}
       />
     </Form>
   );
