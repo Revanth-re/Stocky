@@ -2,7 +2,7 @@
  * Builds a UPI deep-link payment URI (the same format that generating a
  * "Scan & Pay" QR code encodes). Any UPI app (GPay, PhonePe, Paytm…) can
  * read this string once it's rendered as a QR code.
- * Spec: upi://pay?pa=<VPA>&pn=<payee name>&am=<amount>&cu=INR&tn=<note>
+ * Spec: upi://pay?pa=<VPA>&pn=<payee name>&am=<amount>&cu=INR&tn=<note>rftgb
  */
 export function buildUpiPaymentUri(params: {
   vpa: string;
