@@ -1,7 +1,7 @@
 import { mysqlTable, varchar, text, int, decimal, boolean, mysqlEnum, index } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { timestamps, softDelete } from "./_columns";
+import { timestamps, softDelete, jsonColumn } from "./_columns";
 import { stores } from "./stores";
 import { brands } from "./brands";
 import { categories } from "./categories";
@@ -45,6 +45,15 @@ export const products = mysqlTable(
     maxStock: int("max_stock"),
     isActive: boolean("is_active").notNull().default(true),
     source: varchar("source", { length: 16 }).notNull().default("catalog"), // catalog | manual | import
+    /**
+     * Business-template-specific attributes that don't warrant a dedicated
+     * column (IMEI/serial for electronics, size/color for fashion, part
+     * number/vehicle compatibility for automobile, ISBN for books, etc).
+     * Shape is driven by the active template's `productFields` descriptors
+     * — see `business/types.ts` — so new verticals never need a schema
+     * migration, just a new config entry.
+     */
+    customFields: jsonColumn<Record<string, string | number | boolean | null>>("custom_fields").default({}),
     ...timestamps(),
     ...softDelete(),
   },

@@ -1,11 +1,12 @@
 "use client";
 import { useState } from "react";
-import type { StoreType } from "@/db/schema";
+import type { BusinessTemplate } from "@/db/schema";
 import type { StoreInfoInput, StockEntryInput } from "@/validators/onboarding";
+import { hasSeededCatalog } from "@/business/registry";
 import { useCompleteOnboarding } from "../api/use-onboarding";
 import { OnboardingStepper } from "./onboarding-stepper";
 import { StepStoreInfo } from "./step-store-info";
-import { StepStoreType } from "./step-store-type";
+import { StepBusinessTemplate } from "./step-business-template";
 import { StepBrandSelect } from "./step-brand-select";
 import { StepCatalogPreview } from "./step-catalog-preview";
 import { StepStockEntry } from "./step-stock-entry";
@@ -13,7 +14,7 @@ import { StepStockEntry } from "./step-stock-entry";
 type WizardState = {
   step: number;
   storeInfo: StoreInfoInput;
-  storeType?: StoreType;
+  businessTemplate?: BusinessTemplate;
   brandSlugs: string[];
 };
 
@@ -33,9 +34,11 @@ export function OnboardingWizard() {
   });
   const completeOnboarding = useCompleteOnboarding();
 
+  const storeHasSeededCatalog = state.businessTemplate ? hasSeededCatalog(state.businessTemplate) : false;
+
   return (
     <div className="mx-auto w-full max-w-3xl py-10">
-      <OnboardingStepper currentStep={state.step} />
+      <OnboardingStepper currentStep={state.step} totalSteps={storeHasSeededCatalog ? 5 : 2} />
 
       {state.step === 1 && (
         <StepStoreInfo
@@ -45,10 +48,21 @@ export function OnboardingWizard() {
       )}
 
       {state.step === 2 && (
-        <StepStoreType
-          defaultValue={state.storeType}
+        <StepBusinessTemplate
+          defaultValue={state.businessTemplate}
           onBack={() => setState((s) => ({ ...s, step: 1 }))}
-          onNext={(storeType) => setState((s) => ({ ...s, storeType, step: 3 }))}
+          onNext={(businessTemplate) => {
+            if (hasSeededCatalog(businessTemplate)) {
+              setState((s) => ({ ...s, businessTemplate, step: 3 }));
+            } else {
+              completeOnboarding.mutate({
+                storeInfo: state.storeInfo,
+                businessTemplate,
+                brandSlugs: [],
+                stock: [],
+              });
+            }
+          }}
         />
       )}
 
@@ -68,7 +82,7 @@ export function OnboardingWizard() {
         />
       )}
 
-      {state.step === 5 && state.storeType && (
+      {state.step === 5 && state.businessTemplate && (
         <StepStockEntry
           brandSlugs={state.brandSlugs}
           onBack={() => setState((s) => ({ ...s, step: 4 }))}
@@ -76,7 +90,7 @@ export function OnboardingWizard() {
           onSubmit={(values: StockEntryInput) =>
             completeOnboarding.mutate({
               storeInfo: state.storeInfo,
-              storeType: state.storeType!,
+              businessTemplate: state.businessTemplate!,
               brandSlugs: state.brandSlugs,
               stock: values.rows,
             })

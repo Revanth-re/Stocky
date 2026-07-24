@@ -7,13 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { ProductFilters } from "../api/use-products";
 import { useLanguage } from "@/lib/i18n/language-context";
 
-const STATUS_OPTIONS = [
-  { value: "good", label: "Good" },
-  { value: "medium", label: "Medium" },
-  { value: "low", label: "Low" },
-  { value: "critical", label: "Critical" },
-  { value: "out_of_stock", label: "Out of Stock" },
-];
+function useStatusOptions() {
+  const { t } = useLanguage();
+  return [
+    { value: "good", label: t("status.good") },
+    { value: "medium", label: t("status.medium") },
+    { value: "low", label: t("status.low") },
+    { value: "critical", label: t("status.critical") },
+    { value: "out_of_stock", label: t("status.outOfStock") },
+  ];
+}
 
 export function InventoryFilters({
   filters,
@@ -28,6 +31,7 @@ export function InventoryFilters({
   const { data: categories } = useCategories();
   const { data: brands } = useBrands();
   const { t } = useLanguage();
+  const STATUS_OPTIONS = useStatusOptions();
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -43,25 +47,29 @@ export function InventoryFilters({
         </div>
 
         <FilterSelect
-          placeholder="Category"
+          placeholder={t("common.category")}
+          allLabel={t("common.allCategory")}
           value={filters.categoryId}
           options={categories?.map((c) => ({ value: c.id, label: c.name })) ?? []}
           onChange={(value) => onChange({ ...filters, categoryId: value, page: 1 })}
         />
         <FilterSelect
-          placeholder="Brand"
+          placeholder={t("common.brand")}
+          allLabel={t("common.allBrand")}
           value={filters.brandId}
           options={brands?.map((b) => ({ value: b.id, label: b.name })) ?? []}
           onChange={(value) => onChange({ ...filters, brandId: value, page: 1 })}
         />
         <FilterSelect
-          placeholder="Supplier"
+          placeholder={t("common.supplier")}
+          allLabel={t("common.allSupplier")}
           value={filters.supplierId}
           options={suppliers?.map((s) => ({ value: s.id, label: s.name })) ?? []}
           onChange={(value) => onChange({ ...filters, supplierId: value, page: 1 })}
         />
         <FilterSelect
-          placeholder="Stock Status"
+          placeholder={t("common.status")}
+          allLabel={t("common.allStockStatus")}
           value={filters.status}
           options={STATUS_OPTIONS}
           onChange={(value) => onChange({ ...filters, status: value, page: 1 })}
@@ -77,11 +85,13 @@ export function InventoryFilters({
 
 function FilterSelect({
   placeholder,
+  allLabel,
   value,
   options,
   onChange,
 }: {
   placeholder: string;
+  allLabel: string;
   value?: string;
   options: { value: string; label: string }[];
   onChange: (value: string | undefined) => void;
@@ -92,7 +102,7 @@ function FilterSelect({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="all">All {placeholder}</SelectItem>
+        <SelectItem value="all">{allLabel}</SelectItem>
         {options.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}

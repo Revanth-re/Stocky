@@ -1,7 +1,7 @@
-import { mysqlTable, varchar, json, index, unique } from "drizzle-orm/mysql-core";
+import { mysqlTable, varchar, index, unique } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { timestamps } from "./_columns";
+import { timestamps, jsonColumn } from "./_columns";
 import { stores } from "./stores";
 
 /**
@@ -16,7 +16,7 @@ export const settings = mysqlTable(
     storeId: varchar("store_id", { length: 21 }).notNull(),
     category: varchar("category", { length: 64 }).notNull(), // appearance | notifications | permissions | language | general
     key: varchar("key", { length: 120 }).notNull(),
-    value: json("value").$type<unknown>(),
+    value: jsonColumn<unknown>("value"),
     ...timestamps(),
   },
   (table) => [

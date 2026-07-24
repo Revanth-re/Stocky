@@ -22,6 +22,15 @@ export const productSchema = z.object({
   currentStock: z.coerce.number().min(0).default(0),
   /** ISO date string (YYYY-MM-DD). Expiry of the current/opening batch. */
   expiryDate: z.string().optional().or(z.literal("")),
+  /**
+   * Business-template-specific attributes (IMEI, size/color, batch number,
+   * ISBN, ...) rendered dynamically from the active template's
+   * `productFields` descriptors — see `business/types.ts` and
+   * `components/shared/dynamic-product-fields.tsx`. Kept loose here since
+   * the shape varies per template; each descriptor is responsible for its
+   * own value's meaning.
+   */
+  customFields: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
 });
 export type ProductInput = z.infer<typeof productSchema>;
 

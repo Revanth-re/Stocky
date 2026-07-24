@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { storeTypeEnum, userRoleEnum } from "@/db/schema";
+import { businessTemplateEnum, userRoleEnum } from "@/db/schema";
 
 export const storeProfileSchema = z.object({
   name: z.string().min(2).max(160),
@@ -8,9 +8,15 @@ export const storeProfileSchema = z.object({
   gstNumber: z.string().max(20).optional().or(z.literal("")),
   upiId: z.string().max(120).optional().or(z.literal("")),
   address: z.string().max(400).optional().or(z.literal("")),
-  storeType: z.enum(storeTypeEnum).optional(),
+  businessTemplate: z.enum(businessTemplateEnum).optional(),
 });
 export type StoreProfileInput = z.infer<typeof storeProfileSchema>;
+
+export const updateEnabledModulesSchema = z.object({
+  enabledModules: z.array(z.string()).nullable().optional(),
+  enabledAiFeatures: z.array(z.string()).nullable().optional(),
+});
+export type UpdateEnabledModulesInput = z.infer<typeof updateEnabledModulesSchema>;
 
 export const inviteUserSchema = z.object({
   name: z.string().min(2).max(120),

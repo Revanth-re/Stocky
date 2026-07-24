@@ -22,6 +22,14 @@ export async function runPlaceholderForecast(storeId: string, productIds?: strin
   const since = new Date();
   since.setDate(since.getDate() - 14);
 
+  // Recalculating is meant to replace a product's forecast, not pile another one on top of it —
+  // clear whichever products are in scope for this run before inserting fresh rows. Without this,
+  // every "Recalculate" click left the old rows in place and the forecast list (which shows every
+  // row, newest first, with no dedupe) ended up with N duplicate cards per product after N clicks.
+  await db.delete(forecasts).where(
+    and(eq(forecasts.storeId, storeId), productIds?.length ? sql`${forecasts.productId} in ${productIds}` : sql`1=1`),
+  );
+
   const velocityRows = await db
     .select({
       productId: products.id,

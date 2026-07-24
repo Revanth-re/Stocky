@@ -14,6 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { DialogFooter } from "@/components/ui/dialog";
 import { BarcodeScannerDialog } from "@/components/shared/barcode-scanner-dialog";
+import { DynamicProductFields } from "@/components/shared/dynamic-product-fields";
+import { useStoreProfile } from "@/features/settings/api/use-store-profile";
+import { useModulesSettings } from "@/features/settings/api/use-modules";
+import { getBusinessTemplate } from "@/business/registry";
 
 const DEFAULTS: ProductInput = {
   name: "",
@@ -34,6 +38,7 @@ const DEFAULTS: ProductInput = {
   minStock: 5,
   maxStock: undefined,
   currentStock: 0,
+  customFields: {},
 };
 
 export function ProductForm({
@@ -56,6 +61,17 @@ export function ProductForm({
   const { data: categories } = useCategories();
   const { data: brands } = useBrands();
   const { data: suppliers } = useSuppliers();
+  const { data: store } = useStoreProfile();
+  const templateConfig = store?.businessTemplate ? getBusinessTemplate(store.businessTemplate) : null;
+  const templateProductFields = templateConfig?.productFields ?? [];
+  // Only show fields relevant to the tenant's business template — a fashion store shouldn't see
+  // grocery's expiry date / weight-based pricing, and vice versa. See business/types.ts.
+  const showExpiry = templateConfig?.usesExpiryTracking ?? true;
+  const showWeightPricing = templateConfig?.usesWeightBasedPricing ?? true;
+  const { data: modulesSettings } = useModulesSettings();
+  // "Barcode Recognition" is a Live AI feature (Settings > Modules & AI) — its toggle controls
+  // whether the camera-scan entry point shows up here, not just a recorded preference.
+  const barcodeScanEnabled = modulesSettings?.aiFeatures.some((f) => f.id === "barcode-recognition" && f.enabled) ?? true;
   const queryClient = useQueryClient();
 
   /** Match an existing category/brand by name, or create a new one on the fly — so scanning still fills the field in even on a brand-new, empty catalog. */
@@ -133,7 +149,7 @@ export function ProductForm({
               <FormItem className="sm:col-span-2">
                 <FormLabel>Product name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Amul Milk Packet 500ml" {...field} />
+                  <Input placeholder="Product name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -146,7 +162,7 @@ export function ProductForm({
               <FormItem>
                 <FormLabel>SKU</FormLabel>
                 <FormControl>
-                  <Input placeholder="AMUL-MILK-500" {...field} />
+                  <Input placeholder="Unique product code" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -162,90 +178,113 @@ export function ProductForm({
                   <FormControl>
                     <Input placeholder="8901030..." {...field} />
                   </FormControl>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="shrink-0"
-                    onClick={() => setScannerOpen(true)}
-                    disabled={lookingUp}
-                    aria-label="Scan barcode"
-                  >
-                    {lookingUp ? <Loader2 className="size-4 animate-spin" /> : <ScanLine className="size-4" />}
-                  </Button>
+                  {barcodeScanEnabled && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0"
+                      onClick={() => setScannerOpen(true)}
+                      disabled={lookingUp}
+                      aria-label="Scan barcode"
+                    >
+                      {lookingUp ? <Loader2 className="size-4 animate-spin" /> : <ScanLine className="size-4" />}
+                    </Button>
+                  )}
                 </div>
-                <FormDescription>Scanning also tries to auto-fill name, pack size and category.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <SelectField control={form.control} name="categoryId" label="Category" options={categories} />
-          <SelectField control={form.control} name="brandId" label="Brand" options={brands} />
-          <SelectField control={form.control} name="supplierId" label="Supplier" options={suppliers} />
-
-          <FormField
-            control={form.control}
-            name="packSize"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Pack size / weight</FormLabel>
-                <FormControl>
-                  <Input placeholder="500 g, 1 kg, 1 ltr..." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="expiryDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Expiry date</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormDescription>Optional — leave blank if this item doesn't expire.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="pricingType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Sold as</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="unit">Whole pieces (pcs, packet, box…)</SelectItem>
-                    <SelectItem value="weight">Loose / by weight (kg, g, ltr…)</SelectItem>
-                  </SelectContent>
-                </Select>
                 <FormDescription>
-                  {pricingType === "weight"
-                    ? "Billing will accept fractional quantities (e.g. 0.5) in this unit."
-                    : "Billing will use whole-number quantities."}
+                  {barcodeScanEnabled
+                    ? "Scanning also tries to auto-fill name, pack size and category."
+                    : "You can still type a barcode in manually — camera scanning is turned off in Settings > Modules & AI."}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
+        </div>
+
+        {/* Business-template-specific fields (Size/Color for fashion, IMEI for electronics, batch number
+            for pharmacy, ...) surface right up front — not buried under generic fields that may not even
+            apply to this template. See business/<template>/config.ts#productFields. */}
+        <DynamicProductFields
+          control={form.control}
+          fields={templateProductFields}
+          templateLabel={templateConfig?.label}
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SelectField control={form.control} name="categoryId" label="Category" options={categories} />
+          <SelectField control={form.control} name="brandId" label="Brand" options={brands} />
+          <SelectField control={form.control} name="supplierId" label="Supplier" options={suppliers} />
+
+          {showWeightPricing && (
+            <FormField
+              control={form.control}
+              name="packSize"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pack size / weight</FormLabel>
+                  <FormControl>
+                    <Input placeholder="500 g, 1 kg, 1 ltr..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          {showExpiry && (
+            <FormField
+              control={form.control}
+              name="expiryDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Expiry date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormDescription>Optional — leave blank if this item doesn't expire.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {showWeightPricing && (
+            <FormField
+              control={form.control}
+              name="pricingType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sold as</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="unit">Whole pieces (pcs, packet, box…)</SelectItem>
+                      <SelectItem value="weight">Loose / by weight (kg, g, ltr…)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    {pricingType === "weight"
+                      ? "Billing will accept fractional quantities (e.g. 0.5) in this unit."
+                      : "Billing will use whole-number quantities."}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           <FormField
             control={form.control}
             name="unit"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{pricingType === "weight" ? "Weight unit" : "Unit"}</FormLabel>
+                <FormLabel>{showWeightPricing && pricingType === "weight" ? "Weight unit" : "Unit"}</FormLabel>
                 <FormControl>
-                  <Input placeholder={pricingType === "weight" ? "kg, g, ltr…" : "pcs, packet, box…"} {...field} />
+                  <Input placeholder={showWeightPricing && pricingType === "weight" ? "kg, g, ltr…" : "pcs, pair, box…"} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

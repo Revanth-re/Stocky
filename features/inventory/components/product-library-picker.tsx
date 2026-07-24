@@ -65,6 +65,7 @@ export function ProductLibraryPicker({
                 description: "",
                 barcode: "",
                 imageUrl: "",
+                customFields: {},
               })
             }
             className="flex w-full items-center justify-between rounded-xl border border-border p-3 text-left transition-colors hover:border-primary hover:bg-accent disabled:opacity-50"

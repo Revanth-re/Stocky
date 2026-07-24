@@ -194,12 +194,12 @@ export async function generateForecastsWithGemini(storeId: string, productIds?: 
   const store = await db.query.stores.findFirst({ where: eq(stores.id, storeId) });
   const [weatherOutlook, marketContext] = await Promise.all([
     store?.city ? getWeatherOutlook(store.city) : Promise.resolve(null),
-    getMarketContext(storeId, store?.storeType ?? null, store?.city ?? null),
+    getMarketContext(storeId, store?.businessTemplate ?? null, store?.city ?? null),
   ]);
 
   const context: PromptContext = {
     storeName: store?.name ?? "Kirana Store",
-    storeType: store?.storeType ?? null,
+    storeType: store?.businessTemplate ?? null,
     city: store?.city ?? null,
     weatherSummary: summarizeWeatherOutlook(weatherOutlook),
     marketContext,
@@ -253,7 +253,12 @@ export async function generateForecastsWithGemini(storeId: string, productIds?: 
     }
   }
 
+  // Replace, don't append — see the matching comment in forecast-service.ts#runPlaceholderForecast.
+  // Scoped to the products this run actually produced a fresh forecast for, so a partial batch
+  // failure doesn't wipe out still-valid forecasts for other products.
   if (rowsToInsert.length > 0) {
+    const regeneratedProductIds = rowsToInsert.map((r) => r.productId);
+    await db.delete(forecasts).where(and(eq(forecasts.storeId, storeId), sql`${forecasts.productId} in ${regeneratedProductIds}`));
     await db.insert(forecasts).values(rowsToInsert);
   }
 

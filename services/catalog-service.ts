@@ -27,9 +27,18 @@ export async function createSupplier(storeId: string, input: SupplierInput) {
   return created!.id;
 }
 
-export async function listCategories(storeId: string) {
+/**
+ * `includeGlobal` decides whether the shared, cross-tenant catalog rows
+ * (storeId IS NULL — grocery brands/categories like Amul, Beverages, ...
+ * seeded by `db/seed`) are included alongside this tenant's own. Those
+ * global rows only make sense for the `grocery` template, which is what
+ * they were seeded for — pass `false` for every other business template
+ * so a fashion/electronics/etc. tenant only ever sees categories they
+ * created themselves. See `business/registry.ts#hasSeededCatalog`.
+ */
+export async function listCategories(storeId: string, includeGlobal: boolean) {
   return db.query.categories.findMany({
-    where: or(eq(categories.storeId, storeId), isNull(categories.storeId)),
+    where: includeGlobal ? or(eq(categories.storeId, storeId), isNull(categories.storeId)) : eq(categories.storeId, storeId),
     orderBy: (c, { asc }) => asc(c.name),
   });
 }
@@ -42,8 +51,12 @@ export async function createCategory(storeId: string, input: CategoryInput) {
   return created!.id;
 }
 
-export async function listBrands() {
-  return db.query.brands.findMany({ orderBy: (b, { asc }) => asc(b.name) });
+/** See `listCategories` — same `includeGlobal` gating for the shared grocery brand catalog. */
+export async function listBrands(storeId: string, includeGlobal: boolean) {
+  return db.query.brands.findMany({
+    where: includeGlobal ? or(eq(brands.storeId, storeId), isNull(brands.storeId)) : eq(brands.storeId, storeId),
+    orderBy: (b, { asc }) => asc(b.name),
+  });
 }
 
 export async function createBrand(storeId: string, input: BrandInput) {

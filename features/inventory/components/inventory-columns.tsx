@@ -13,12 +13,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatCurrency } from "@/lib/utils";
-import { STOCK_STATUS_LABEL, STOCK_STATUS_BADGE_VARIANT } from "@/lib/inventory-status";
+import { STOCK_STATUS_BADGE_VARIANT } from "@/lib/inventory-status";
 import type { ProductListRow } from "@/types/product";
+
+declare module "@tanstack/react-table" {
+  interface ColumnMeta<TData, TValue> {
+    hideOnMobile?: boolean;
+  }
+}
 
 const columnHelper = createColumnHelper<ProductListRow>();
 
-export function buildInventoryColumns(handlers: { onEdit: (row: ProductListRow) => void; onDelete: (row: ProductListRow) => void }) {
+export function buildInventoryColumns(handlers: { onEdit: (row: ProductListRow) => void; onDelete: (row: ProductListRow) => void; t: (key: string) => string }) {
+  const { t } = handlers;
+  const STATUS_LABEL_T: Record<ProductListRow["status"], string> = {
+    good: t("status.good"),
+    medium: t("status.medium"),
+    low: t("status.low"),
+    critical: t("status.critical"),
+    out_of_stock: t("status.outOfStock"),
+  };
   return [
     columnHelper.display({
       id: "image",
@@ -34,30 +48,31 @@ export function buildInventoryColumns(handlers: { onEdit: (row: ProductListRow) 
       ),
     }),
     columnHelper.accessor("name", {
-      header: "Product",
+      header: t("common.product"),
       cell: ({ row }) => (
         <Link href={`/inventory/${row.original.id}` as never} className="font-medium hover:text-primary hover:underline">
           {row.original.name}
         </Link>
       ),
     }),
-    columnHelper.accessor("sku", { header: "SKU" }),
-    columnHelper.accessor("barcode", { header: "Barcode", cell: (info) => info.getValue() ?? "—" }),
-    columnHelper.accessor("brandName", { header: "Brand", cell: (info) => info.getValue() ?? "—" }),
-    columnHelper.accessor("categoryName", { header: "Category", cell: (info) => info.getValue() ?? "—" }),
-    columnHelper.accessor("supplierName", { header: "Supplier", cell: (info) => info.getValue() ?? "—" }),
-    columnHelper.accessor("purchasePrice", { header: "Purchase Price", cell: (info) => formatCurrency(info.getValue()) }),
-    columnHelper.accessor("sellingPrice", { header: "Selling Price", cell: (info) => formatCurrency(info.getValue()) }),
-    columnHelper.accessor("currentStock", { header: "Current Stock" }),
-    columnHelper.accessor("minStock", { header: "Minimum Stock" }),
+    columnHelper.accessor("sku", { header: t("common.sku"), meta: { hideOnMobile: true } }),
+    columnHelper.accessor("barcode", { header: t("common.barcode"), cell: (info) => info.getValue() ?? "—", meta: { hideOnMobile: true } }),
+    columnHelper.accessor("brandName", { header: t("common.brand"), cell: (info) => info.getValue() ?? "—", meta: { hideOnMobile: true } }),
+    columnHelper.accessor("categoryName", { header: t("common.category"), cell: (info) => info.getValue() ?? "—", meta: { hideOnMobile: true } }),
+    columnHelper.accessor("supplierName", { header: t("common.supplier"), cell: (info) => info.getValue() ?? "—", meta: { hideOnMobile: true } }),
+    columnHelper.accessor("purchasePrice", { header: t("common.purchasePrice"), cell: (info) => formatCurrency(info.getValue()), meta: { hideOnMobile: true } }),
+    columnHelper.accessor("sellingPrice", { header: t("common.sellingPrice"), cell: (info) => formatCurrency(info.getValue()) }),
+    columnHelper.accessor("currentStock", { header: t("common.currentStock") }),
+    columnHelper.accessor("minStock", { header: t("common.minimumStock"), meta: { hideOnMobile: true } }),
     columnHelper.accessor("status", {
-      header: "Status",
+      header: t("common.status"),
       cell: (info) => (
-        <Badge variant={STOCK_STATUS_BADGE_VARIANT[info.getValue()]}>{STOCK_STATUS_LABEL[info.getValue()]}</Badge>
+        <Badge variant={STOCK_STATUS_BADGE_VARIANT[info.getValue()]}>{STATUS_LABEL_T[info.getValue()]}</Badge>
       ),
     }),
     columnHelper.accessor("nearestExpiryDate", {
-      header: "Expiry",
+      header: t("common.expiry"),
+      meta: { hideOnMobile: true },
       cell: (info) => {
         const value = info.getValue();
         if (!value) return <span className="text-muted-foreground">—</span>;

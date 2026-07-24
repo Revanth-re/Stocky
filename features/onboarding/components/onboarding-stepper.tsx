@@ -1,12 +1,19 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["Store Info", "Store Type", "Brands", "Catalog", "Stock"];
+const FULL_STEPS = ["Store Info", "Business Type", "Brands", "Catalog", "Stock"];
+const SHORT_STEPS = ["Store Info", "Business Type"];
 
-export function OnboardingStepper({ currentStep }: { currentStep: number }) {
+/**
+ * `totalSteps` picks between the full 5-step flow (templates with a seeded
+ * catalog — grocery today) and the short 2-step flow (every other
+ * template, which onboards straight into an empty catalog).
+ */
+export function OnboardingStepper({ currentStep, totalSteps = 5 }: { currentStep: number; totalSteps?: number }) {
+  const steps = totalSteps <= 2 ? SHORT_STEPS : FULL_STEPS;
   return (
     <div className="mx-auto mb-10 flex w-full max-w-2xl items-center">
-      {STEPS.map((label, index) => {
+      {steps.map((label, index) => {
         const step = index + 1;
         const isDone = step < currentStep;
         const isActive = step === currentStep;
@@ -32,7 +39,7 @@ export function OnboardingStepper({ currentStep }: { currentStep: number }) {
                 {label}
               </span>
             </div>
-            {step !== STEPS.length && (
+            {step !== steps.length && (
               <div className={cn("mx-2 h-0.5 flex-1 rounded-full", isDone ? "bg-gradient-brand" : "bg-muted")} />
             )}
           </div>

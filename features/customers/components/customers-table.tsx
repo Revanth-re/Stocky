@@ -10,17 +10,19 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export function CustomersTable() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedSearch(search);
   const { data, isLoading } = useCustomers(debouncedSearch);
+  const { t } = useLanguage();
 
   return (
     <div className="space-y-4">
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search name or phone…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input placeholder={t("customers.searchPlaceholder")} className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       <Card className="rounded-2xl">
@@ -31,17 +33,17 @@ export function CustomersTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Credit limit</TableHead>
-                  <TableHead>Balance owed</TableHead>
+                  <TableHead>{t("customers.customer")}</TableHead>
+                  <TableHead>{t("customers.phone")}</TableHead>
+                  <TableHead>{t("customers.creditLimit")}</TableHead>
+                  <TableHead>{t("customers.balanceOwed")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data?.items.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="py-10 text-center text-sm text-muted-foreground">
-                      No customers yet. They&apos;re added automatically the first time you record an udhaar sale, or you can add one from Sales.
+                      {t("customers.noCustomersYet")}
                     </TableCell>
                   </TableRow>
                 )}
@@ -59,7 +61,7 @@ export function CustomersTable() {
                       {customer.currentBalance > 0 ? (
                         <Badge variant="destructive">{formatCurrency(customer.currentBalance)}</Badge>
                       ) : (
-                        <span className="text-muted-foreground">Settled</span>
+                        <span className="text-muted-foreground">{t("customers.settled")}</span>
                       )}
                     </TableCell>
                   </TableRow>

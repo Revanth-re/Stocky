@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { storeTypeEnum } from "@/db/schema";
+import { businessTemplateEnum } from "@/db/schema";
 
 export const storeInfoSchema = z.object({
   storeName: z.string().min(2, "Store name is required").max(160),
@@ -10,10 +10,12 @@ export const storeInfoSchema = z.object({
 });
 export type StoreInfoInput = z.infer<typeof storeInfoSchema>;
 
-export const storeTypeSchema = z.object({
-  storeType: z.enum(storeTypeEnum),
+export const businessTemplateSchema = z.object({
+  businessTemplate: z.enum(businessTemplateEnum),
 });
-export type StoreTypeInput = z.infer<typeof storeTypeSchema>;
+export type BusinessTemplateInput = z.infer<typeof businessTemplateSchema>;
+/** @deprecated use `businessTemplateSchema` */
+export const storeTypeSchema = businessTemplateSchema;
 
 export const brandSelectionSchema = z.object({
   brandSlugs: z.array(z.string()).min(1, "Pick at least one brand to continue"),
@@ -35,8 +37,10 @@ export type StockEntryInput = z.infer<typeof stockEntrySchema>;
 /** Full onboarding payload submitted to POST /api/onboarding on the final step. */
 export const completeOnboardingSchema = z.object({
   storeInfo: storeInfoSchema,
-  storeType: storeTypeSchema.shape.storeType,
-  brandSlugs: z.array(z.string()).min(1),
-  stock: z.array(stockEntryRowSchema),
+  businessTemplate: businessTemplateSchema.shape.businessTemplate,
+  // Brand/catalog selection only applies to templates with a seeded global catalog (grocery today) —
+  // other templates onboard straight into an empty catalog and add products manually.
+  brandSlugs: z.array(z.string()).default([]),
+  stock: z.array(stockEntryRowSchema).default([]),
 });
 export type CompleteOnboardingInput = z.infer<typeof completeOnboardingSchema>;

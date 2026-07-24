@@ -23,7 +23,7 @@ export async function completeOnboarding(storeId: string, input: CompleteOnboard
         phone: input.storeInfo.phone,
         gstNumber: input.storeInfo.gstNumber || null,
         address: input.storeInfo.address || null,
-        storeType: input.storeType,
+        businessTemplate: input.businessTemplate,
         selectedBrandSlugs: input.brandSlugs,
         onboardingStep: "completed",
         onboardingCompletedAt: new Date().toISOString(),

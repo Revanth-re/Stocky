@@ -1,7 +1,7 @@
-import { mysqlTable, varchar, text, mysqlEnum, json, index } from "drizzle-orm/mysql-core";
+import { mysqlTable, varchar, text, mysqlEnum, index } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { timestamps } from "./_columns";
+import { timestamps, jsonColumn } from "./_columns";
 import { stores } from "./stores";
 import { users } from "./users";
 
@@ -41,7 +41,7 @@ export const activityLogs = mysqlTable(
     entityId: varchar("entity_id", { length: 21 }).notNull(),
     action: mysqlEnum("action", activityActionEnum).notNull(),
     description: text("description").notNull(),
-    metadata: json("metadata").$type<Record<string, unknown>>(),
+    metadata: jsonColumn<Record<string, unknown>>("metadata"),
     createdAt: timestamps().createdAt,
   },
   (table) => [

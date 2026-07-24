@@ -17,6 +17,14 @@ const pool =
     uri: process.env.DATABASE_URL,
     connectionLimit: 10,
     waitForConnections: true,
+    // Explicit utf8mb4 so ₹ (and any other non-ASCII/emoji) round-trips correctly regardless of
+    // the MySQL/MariaDB server's default charset — mysql2's own default is the legacy 3-byte
+    // "utf8", and if the target database/table was created without an explicit charset (common on
+    // local MySQL/MariaDB installs, e.g. XAMPP defaulting to latin1), inserts containing ₹ or
+    // similar characters fail at the driver/column level. This only fixes the connection side —
+    // if the database itself wasn't created with utf8mb4, it also needs converting; see the
+    // troubleshooting note in README.
+    charset: "utf8mb4",
   });
 
 if (process.env.NODE_ENV !== "production") {

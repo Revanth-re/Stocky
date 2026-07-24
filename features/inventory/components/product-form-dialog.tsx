@@ -4,6 +4,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ProductForm } from "./product-form";
 import { ProductLibraryPicker } from "./product-library-picker";
 import { useCreateProduct, useUpdateProduct } from "../api/use-products";
+import { useStoreProfile } from "@/features/settings/api/use-store-profile";
+import { hasSeededCatalog } from "@/business/registry";
 import type { ProductInput } from "@/validators/product";
 import type { ProductListRow } from "@/types/product";
 
@@ -19,6 +21,10 @@ export function ProductFormDialog({
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct(editingProduct?.id ?? "");
   const isEditing = !!editingProduct;
+  const { data: store } = useStoreProfile();
+  // The "Product Library" picker only has grocery-brand items (Amul, Nestlé, ...) to offer —
+  // hide it entirely for templates with no seeded catalog instead of showing irrelevant products.
+  const showLibraryTab = store?.businessTemplate ? hasSeededCatalog(store.businessTemplate) : false;
 
   function handleSubmit(values: ProductInput) {
     const mutation = isEditing ? updateProduct : createProduct;
@@ -31,7 +37,11 @@ export function ProductFormDialog({
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit product" : "Add product"}</DialogTitle>
           <DialogDescription>
-            {isEditing ? "Update product details and stock." : "Add a product manually or pull one from the catalog library."}
+            {isEditing
+              ? "Update product details and stock."
+              : showLibraryTab
+                ? "Add a product manually or pull one from the catalog library."
+                : "Add a product manually."}
           </DialogDescription>
         </DialogHeader>
 
@@ -46,12 +56,13 @@ export function ProductFormDialog({
               currentStock: editingProduct.currentStock,
               minStock: editingProduct.minStock,
               expiryDate: editingProduct.nearestExpiryDate ?? "",
+              customFields: editingProduct.customFields ?? {},
             }}
             submitting={updateProduct.isPending}
             onSubmit={handleSubmit}
             onCancel={() => onOpenChange(false)}
           />
-        ) : (
+        ) : showLibraryTab ? (
           <Tabs defaultValue="manual">
             <TabsList>
               <TabsTrigger value="manual">Manual Entry</TabsTrigger>
@@ -67,6 +78,8 @@ export function ProductFormDialog({
               />
             </TabsContent>
           </Tabs>
+        ) : (
+          <ProductForm submitting={createProduct.isPending} onSubmit={handleSubmit} onCancel={() => onOpenChange(false)} />
         )}
       </DialogContent>
     </Dialog>

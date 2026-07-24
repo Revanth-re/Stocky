@@ -18,6 +18,8 @@ export type ProductListRow = {
   status: StockStatus;
   /** Soonest upcoming (not-yet-expired) batch expiry date for this product, ISO date string, or null if none tracked. */
   nearestExpiryDate: string | null;
+  /** Business-template-specific attributes — see `business/types.ts#ProductFieldDescriptor`. */
+  customFields: Record<string, string | number | boolean | null> | null;
 };
 
 export type ProductListResult = {

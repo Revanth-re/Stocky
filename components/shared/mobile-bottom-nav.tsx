@@ -3,20 +3,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MOBILE_NAV } from "@/lib/nav-config";
+import { getMobileNav, type ResolvedNavItem } from "@/lib/nav-config";
 import { useLanguage } from "@/lib/i18n/language-context";
+import type { UserRole } from "@/db/schema";
 
-export function MobileBottomNav() {
+export function MobileBottomNav({ role }: { role: UserRole }) {
   const pathname = usePathname();
-  const leftItems = MOBILE_NAV.slice(0, 2);
-  const rightItems = MOBILE_NAV.slice(2);
+  const nav = getMobileNav({ role });
+  const leftItems = nav.slice(0, 2);
+  const rightItems = nav.slice(2);
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur lg:hidden">
       <div className="relative flex items-center justify-between px-2 py-2">
         <div className="flex flex-1 justify-around">
           {leftItems.map((item) => (
-            <NavLink key={item.href} item={item} active={pathname.startsWith(item.href)} />
+            <NavLink key={item.id} item={item} active={pathname.startsWith(item.href)} />
           ))}
         </div>
 
@@ -30,7 +32,7 @@ export function MobileBottomNav() {
 
         <div className="flex flex-1 justify-around">
           {rightItems.map((item) => (
-            <NavLink key={item.href} item={item} active={pathname.startsWith(item.href)} />
+            <NavLink key={item.id} item={item} active={pathname.startsWith(item.href)} />
           ))}
         </div>
       </div>
@@ -38,9 +40,10 @@ export function MobileBottomNav() {
   );
 }
 
-function NavLink({ item, active }: { item: (typeof MOBILE_NAV)[number]; active: boolean }) {
+function NavLink({ item, active }: { item: ResolvedNavItem; active: boolean }) {
   const Icon = item.icon;
   const { t } = useLanguage();
+  const label = item.labelKey ? t(item.labelKey) : item.label;
   return (
     <Link
       href={item.href as never}
@@ -50,7 +53,7 @@ function NavLink({ item, active }: { item: (typeof MOBILE_NAV)[number]; active: 
       )}
     >
       <Icon className={cn("size-5", active && "fill-accent")} />
-      {t(item.labelKey)}
+      {label}
     </Link>
   );
 }

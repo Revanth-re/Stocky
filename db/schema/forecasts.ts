@@ -1,7 +1,7 @@
-import { mysqlTable, varchar, int, decimal, mysqlEnum, text, json, index } from "drizzle-orm/mysql-core";
+import { mysqlTable, varchar, int, decimal, mysqlEnum, text, index } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { timestamps } from "./_columns";
+import { timestamps, jsonColumn } from "./_columns";
 import { stores } from "./stores";
 import { products } from "./products";
 
@@ -32,9 +32,9 @@ export const forecasts = mysqlTable(
     /** Human-readable explanation, e.g. "Will run out in 2 days based on 7-day velocity". */
     reason: text("reason"),
     /** Raw model metadata: algorithm used, feature importances, seasonality flags, etc. */
-    modelMeta: json("model_meta").$type<Record<string, unknown>>(),
+    modelMeta: jsonColumn<Record<string, unknown>>("model_meta"),
     /** Chart series: [{ date, actual, predicted }] for the forecast sparkline. */
-    series: json("series").$type<Array<{ date: string; actual?: number; predicted: number }>>(),
+    series: jsonColumn<Array<{ date: string; actual?: number; predicted: number }>>("series"),
     willStockOutAt: varchar("will_stock_out_at", { length: 32 }),
     generatedAt: varchar("generated_at", { length: 64 }).notNull(),
     ...timestamps(),

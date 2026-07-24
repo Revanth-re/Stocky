@@ -17,10 +17,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export function NewCustomerDialog() {
   const [open, setOpen] = useState(false);
   const createCustomer = useCreateCustomer();
+  const { t } = useLanguage();
   const form = useForm<CustomerInput>({
     resolver: zodResolver(customerSchema),
     defaultValues: { name: "", phone: "", address: "", creditLimit: 0 },
@@ -36,13 +38,13 @@ export function NewCustomerDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <UserPlus className="size-4" /> Add customer
+          <UserPlus className="size-4" /> {t("customers.addCustomer")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add a customer</DialogTitle>
-          <DialogDescription>Track their udhaar/khata balance and sales history here.</DialogDescription>
+          <DialogTitle>{t("customers.addACustomer")}</DialogTitle>
+          <DialogDescription>{t("customers.trackBalance")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -51,7 +53,7 @@ export function NewCustomerDialog() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("customers.name")}</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -64,7 +66,7 @@ export function NewCustomerDialog() {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>{t("customers.phone")}</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -77,7 +79,7 @@ export function NewCustomerDialog() {
               name="creditLimit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Credit limit (optional)</FormLabel>
+                  <FormLabel>{t("customers.creditLimitOptional")}</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" {...field} />
                   </FormControl>
@@ -87,10 +89,10 @@ export function NewCustomerDialog() {
             />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button type="submit" loading={createCustomer.isPending}>
-                Save customer
+                {t("customers.saveCustomer")}
               </Button>
             </DialogFooter>
           </form>

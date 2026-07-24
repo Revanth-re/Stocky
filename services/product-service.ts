@@ -38,6 +38,7 @@ export async function listProducts(storeId: string, query: ProductListQuery): Pr
         minStock: products.minStock,
         status: sql<string>`coalesce(${inventory.status}, 'out_of_stock')`,
         nearestExpiryDate: sql<string | null>`(select min(${inventoryBatches.expiryDate}) from ${inventoryBatches} where ${inventoryBatches.productId} = ${products.id} and ${inventoryBatches.expiryDate} >= curdate())`,
+        customFields: products.customFields,
       })
       .from(products)
       .leftJoin(inventory, eq(inventory.productId, products.id))
@@ -96,6 +97,7 @@ export async function getProductDetail(storeId: string, productId: string): Prom
       currentStock: sql<number>`coalesce(${inventory.quantity}, 0)`,
       status: sql<string>`coalesce(${inventory.status}, 'out_of_stock')`,
       nearestExpiryDate: sql<string | null>`(select min(${inventoryBatches.expiryDate}) from ${inventoryBatches} where ${inventoryBatches.productId} = ${products.id} and ${inventoryBatches.expiryDate} >= curdate())`,
+      customFields: products.customFields,
       createdAt: products.createdAt,
     })
     .from(products)
@@ -183,6 +185,7 @@ export async function createProduct(storeId: string, userId: string, input: Prod
         taxPercent: input.taxPercent.toFixed(2),
         minStock: input.minStock,
         maxStock: input.maxStock ?? null,
+        customFields: input.customFields ?? {},
         source: "manual",
       })
       .$returningId();
@@ -242,6 +245,7 @@ export async function updateProduct(storeId: string, userId: string, productId: 
         taxPercent: input.taxPercent.toFixed(2),
         minStock: input.minStock,
         maxStock: input.maxStock ?? null,
+        customFields: input.customFields ?? {},
       })
       .where(and(eq(products.storeId, storeId), eq(products.id, productId)));
 

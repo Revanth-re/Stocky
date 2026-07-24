@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 const SETTINGS_NAV = [
   { href: "/settings/profile", label: "Profile" },
   { href: "/settings/store", label: "Store" },
+  { href: "/settings/modules", label: "Modules & AI" },
   { href: "/settings/users", label: "Users" },
   { href: "/settings/roles", label: "Roles & Permissions" },
   { href: "/settings/suppliers", label: "Suppliers" },

@@ -28,7 +28,7 @@ export function StoreSettingsForm() {
         gstNumber: store.gstNumber ?? "",
         upiId: store.upiId ?? "",
         address: store.address ?? "",
-        storeType: store.storeType,
+        businessTemplate: store.businessTemplate,
       });
     }
   }, [store, form]);

@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --radius: 1.25rem; /* 20px card radius */
+  --radius: 0.5rem; /* subtle, not-too-rounded corners */
 
   /* Brand */
   --color-primary: #6d4aff;
@@ -81,10 +81,12 @@
   --color-warning: var(--color-warning);
   --color-destructive: var(--color-destructive);
   --color-info: var(--color-info);
-  --radius-sm: calc(var(--radius) - 12px);
-  --radius-md: calc(var(--radius) - 6px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 8px);
+  --radius-xl: calc(var(--radius) + 2px);
+  --radius-2xl: calc(var(--radius) + 4px);
+  --radius-3xl: calc(var(--radius) + 6px);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 

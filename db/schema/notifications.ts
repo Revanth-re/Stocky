@@ -1,7 +1,7 @@
-import { mysqlTable, varchar, text, boolean, mysqlEnum, json, index } from "drizzle-orm/mysql-core";
+import { mysqlTable, varchar, text, boolean, mysqlEnum, index } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { timestamps } from "./_columns";
+import { timestamps, jsonColumn } from "./_columns";
 import { stores } from "./stores";
 import { users } from "./users";
 
@@ -25,7 +25,7 @@ export const notifications = mysqlTable(
     title: varchar("title", { length: 200 }).notNull(),
     message: text("message").notNull(),
     /** Deep-link payload, e.g. { productId } or { purchaseOrderId } */
-    metadata: json("metadata").$type<Record<string, unknown>>(),
+    metadata: jsonColumn<Record<string, unknown>>("metadata"),
     isRead: boolean("is_read").notNull().default(false),
     ...timestamps(),
   },

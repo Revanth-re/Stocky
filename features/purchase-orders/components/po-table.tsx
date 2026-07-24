@@ -23,18 +23,18 @@ export function PurchaseOrderTable() {
           <TableRow>
             <TableHead>PO Number</TableHead>
             <TableHead>Supplier</TableHead>
-            <TableHead>Items</TableHead>
+            <TableHead className="hidden sm:table-cell">Items</TableHead>
             <TableHead>Total</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Expected Delivery</TableHead>
+            <TableHead className="hidden md:table-cell">Expected Delivery</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading &&
             Array.from({ length: 5 }).map((_, i) => (
               <TableRow key={i}>
-                {Array.from({ length: 6 }).map((_, j) => (
-                  <TableCell key={j}>
+                {[undefined, undefined, "hidden sm:table-cell", undefined, undefined, "hidden md:table-cell"].map((cls, j) => (
+                  <TableCell key={j} className={cls}>
                     <Skeleton className="h-5 w-full" />
                   </TableCell>
                 ))}
@@ -55,14 +55,14 @@ export function PurchaseOrderTable() {
                 </Link>
               </TableCell>
               <TableCell>{po.supplierName}</TableCell>
-              <TableCell>{po.itemCount}</TableCell>
+              <TableCell className="hidden sm:table-cell">{po.itemCount}</TableCell>
               <TableCell className="font-medium">{formatCurrency(po.totalAmount)}</TableCell>
               <TableCell>
                 <Badge variant={PO_STATUS_BADGE_VARIANT[po.status]} className="capitalize">
                   {PO_STATUS_LABEL[po.status]}
                 </Badge>
               </TableCell>
-              <TableCell>{po.expectedDeliveryDate ? format(new Date(po.expectedDeliveryDate), "d MMM yyyy") : "—"}</TableCell>
+              <TableCell className="hidden md:table-cell">{po.expectedDeliveryDate ? format(new Date(po.expectedDeliveryDate), "d MMM yyyy") : "—"}</TableCell>
             </TableRow>
           ))}
         </TableBody>
